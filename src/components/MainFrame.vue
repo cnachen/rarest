@@ -2,13 +2,46 @@
     <el-container class="layout">
       <el-header class="header"
       >
-        <div class="logo">Risqué
+        <div class="logo">{{ softwareInfo.name }}
           <el-tag size="small"
-          >v1.0.0, riscv64i</el-tag
+          >v{{ softwareInfo.version }}, riscv64i</el-tag
         ></div>
 
-          <div class="">
-
+          <div class="header-right">
+            <span style="font-size: 13px; font-weight: 600; color: var(--el-text-color-regular)">Version:</span>
+            <el-select
+              v-model="selectedProject"
+              placeholder="选择项目"
+              size="small"
+              style="width: 200px; margin-right: 16px;"
+            >
+           
+              <el-option
+                v-for="item in projectOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </el-select>
+            <a
+              href="https://github.com/cnachen/risque"
+              target="_blank"
+              style="display: flex; text-decoration: none; color: var(--el-text-color-regular)"
+              title="GitHub"
+            >
+              <el-icon :size="20">
+                <BrandGithub />
+              </el-icon>
+            </a>
+            <button 
+              @click="showAboutDialog"
+              title="关于"
+              style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)"
+            >
+              <el-icon :size="20">
+                <QuestionMark />
+              </el-icon>
+            </button>
           </div>
       </el-header>
       <el-container class="main-container">
@@ -89,18 +122,49 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- 关于软件的对话框 -->
+    <el-dialog
+      v-model="aboutDialogVisible"
+      title="关于软件"
+      width="400px"
+      align-center
+    >
+      <div class="about-content">
+        <h3>{{ softwareInfo.name }}</h3>
+        <p>{{ softwareInfo.description }}</p>
+        <div class="about-info">
+          <p><strong>版本：</strong> v{{ softwareInfo.version }}</p>
+          <p><strong>作者：</strong> {{ softwareInfo.author }}</p>
+          <p><strong>许可证：</strong> {{ softwareInfo.license }}</p>
+        </div>
+        <div class="about-links">
+          <a :href="softwareInfo.repository" target="_blank" rel="noopener noreferrer">
+            <el-icon><BrandGithub /></el-icon> GitHub
+          </a>
+          <a :href="softwareInfo.homepage" target="_blank" rel="noopener noreferrer">
+            <el-icon><Book /></el-icon> 文档
+          </a>
+        </div>
+        <div class="about-footer">
+          <el-button type="primary" @click="aboutDialogVisible = false">关闭</el-button>
+        </div>
+      </div>
+    </el-dialog>
     </el-container>
   </template>
   
   <script setup>
   import { ref, computed } from "vue";
-  import { Search, Plus } from '@element-plus/icons-vue'
   import { ElMessage } from 'element-plus'
   import EditorSession from './EditorSession.vue'
+  import { Plus, Search, BrandGithub, QuestionMark, Book } from "@vicons/tabler";
+  import pkg from '../../package.json'  // 导入 package.json 获取版本信息
 
   const searchQuery = ref('');
   const dialogVisible = ref(false);
   const formRef = ref(null);
+  const aboutDialogVisible = ref(false)
   
   const menuItems = ref([
     { index: '1', label: '选项 1' },
@@ -172,6 +236,47 @@
       }
     });
   }
+
+  // 添加选择项目的数据
+  const selectedProject = ref('')
+  const projectOptions = [
+    {
+      value: 'project1',
+      label: '示例项目 1'
+    },
+    {
+      value: 'project2',
+      label: '示例项目 2'
+    },
+    {
+      value: 'project3',
+      label: '示例项目 3'
+    },
+    {
+      value: 'project4',
+      label: '示例项目 4'
+    },
+    {
+      value: 'project5',
+      label: '示例项目 5'
+    }
+  ]
+
+  const softwareInfo = {
+    name: 'Risqué',
+    version: pkg.version || '1.0.0',
+    description: '一个强大的调试工具',
+    author: pkg.author || 'Cnachen',
+    license: pkg.license || 'MIT',
+    repository: pkg.repository?.url || 'https://github.com/cnachen/risque',
+    homepage: pkg.homepage || 'https://github.com/cnachen/risque',
+    dependencies: pkg.dependencies || {}
+  }
+
+  const showAboutDialog = () => {
+    aboutDialogVisible.value = true
+  }
+
   </script>
   
   <style scoped>
@@ -356,5 +461,44 @@
 
   :deep(.el-form-item__error) {
     padding-top: 4px;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .about-content {
+    padding: 20px;
+  }
+
+  .about-info {
+    margin-bottom: 16px;
+  }
+
+  .about-links {
+    margin-bottom: 16px;
+  }
+
+  .about-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--el-color-primary);
+    text-decoration: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.3s;
+  }
+
+  .about-links a:hover {
+    background-color: var(--el-color-primary-light-9);
+  }
+
+  .about-footer {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--el-border-color-lighter);
   }
   </style>

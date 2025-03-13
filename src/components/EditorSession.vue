@@ -5,10 +5,51 @@
       <!-- 顶部工具栏 -->
       <div class="toolbar">
         <div class="tool-buttons">
-          <el-button :icon="Refresh" circle />
-          <el-button :icon="Upload" circle />
-          <el-button :icon="Download" circle />
-          <el-button :icon="Setting" circle />
+          <button 
+              @click="console.log('compile')" 
+              title="分享"
+              style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)"
+            >
+              <el-icon :size="20">
+                <Share />
+              </el-icon>
+            </button>
+          <button 
+              @click="console.log('compile')" 
+              title="编译"
+              style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)"
+            >
+              <el-icon :size="20">
+                <Refresh />
+              </el-icon>
+            </button>
+            <button 
+              @click="console.log('run')" 
+              title="运行"
+              style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)"
+            >
+              <el-icon :size="20">
+                <PlayerPlay />
+              </el-icon>
+            </button>
+            <button 
+              @click="console.log('stop')" 
+              title="暂停"
+              style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)"
+            >
+              <el-icon :size="20">
+                <PlayerStop />
+              </el-icon>
+            </button>
+            <button 
+              @click="console.log('step')" 
+              title="单步"
+              style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)"
+            >
+              <el-icon :size="20">
+                <StepInto />
+              </el-icon>
+            </button>
         </div>
       </div>
 
@@ -86,7 +127,7 @@
 
 <script setup>
 import { ref, shallowRef, onMounted, onUnmounted } from 'vue'
-import { Refresh, Upload, Download, Setting } from '@element-plus/icons-vue'
+import { Refresh, PlayerPlay, Share, PlayerStop, StepInto} from '@vicons/tabler'
 
 const code = ref('// some code...')
 
@@ -356,29 +397,6 @@ const executionData = ref([
 .tool-buttons {
   display: flex;
   gap: 8px;
-}
-
-:deep(.el-button.is-circle) {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  width: 24px;
-  height: 24px;
-}
-
-:deep(.el-button.is-circle .el-icon) {
-  margin: 0;
-}
-
-:deep(.el-button.is-circle:hover) {
-  color: var(--el-color-primary);
-  background-color: var(--el-fill-color-light);
-}
-
-:deep(.el-button.is-circle:focus) {
-  outline: none;
-  box-shadow: none;
 }
 
 .editors-wrapper {
