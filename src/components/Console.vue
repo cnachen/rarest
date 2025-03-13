@@ -1,12 +1,16 @@
 <template>
   <div class="console-container">
-    <div class="console-output" ref="consoleOutput">
-      <div v-for="(log, index) in logs" :key="index" :class="['console-line', log.type]">
-        <span class="timestamp">{{ log.timestamp }}</span>
-        <span class="content" v-html="formatContent(log.content)"></span>
+    <!-- 添加一个包装器用于滚动内容 -->
+    <div class="console-scroll-area">
+      <div class="console-output" ref="consoleOutput">
+        <div v-for="(log, index) in logs" :key="index" :class="['console-line', log.type]">
+          <span class="timestamp">{{ log.timestamp }}</span>
+          <span class="content" v-html="formatContent(log.content)"></span>
+        </div>
       </div>
     </div>
-    <div class="console-input">
+    <!-- 输入区域固定在底部 -->
+    <div class="console-input-fixed">
       <span class="prompt">></span>
       <input 
         ref="inputRef"
@@ -128,18 +132,40 @@ onMounted(() => {
 <style scoped>
 .console-container {
   height: 100%;
-  background-color: #ffffff;  /* 改为白色背景 */
-  color: #000000;  /* 改为黑色文字 */
+  background-color: #ffffff;
+  color: #000000;
   font-family: 'Consolas', 'Monaco', monospace;
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* 防止整个容器滚动 */
+}
+
+/* 新增滚动区域容器 */
+.console-scroll-area {
+  flex: 1;
   overflow: hidden;
+  position: relative;
 }
 
 .console-output {
-  flex: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   overflow-y: auto;
   padding: 8px;
+}
+
+/* 修改输入区域为固定定位 */
+.console-input-fixed {
+  flex-shrink: 0; /* 防止输入区域被压缩 */
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  background-color: #f5f5f5;
+  border-top: 1px solid #e0e0e0;
+  width: 100%;
 }
 
 .console-line {
@@ -160,14 +186,6 @@ onMounted(() => {
   flex: 1;
   white-space: pre-wrap;
   word-break: break-all;
-}
-
-.console-input {
-  display: flex;
-  align-items: center;
-  padding: 8px;
-  background-color: #f5f5f5;  /* 浅灰色背景 */
-  border-top: 1px solid #e0e0e0;  /* 浅色边框 */
 }
 
 .prompt {
