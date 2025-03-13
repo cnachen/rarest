@@ -68,26 +68,6 @@
       </el-main>
     </el-container>
 
-    <!-- 添加新项目的对话框 -->
-    <el-dialog v-model="createDialogVisible" :show-close="false" width="400px" :close-on-click-modal="false"
-      title="添加新项目" :align-center="false" class="add-item-dialog">
-      <el-form :model="newItem" :rules="rules" ref="formRef" label-width="0" class="add-item-form">
-        <el-form-item prop="label">
-          <div class="form-item-header">
-            <span class="form-item-label">项目名称</span>
-            <span class="form-item-required">*</span>
-          </div>
-          <el-input v-model="newItem.label" placeholder="请输入项目名称（最多20个字符）" maxlength="20" show-word-limit />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="createDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitForm">确定</el-button>
-        </span>
-      </template>
-    </el-dialog>
-
     <!-- 关于软件的对话框 -->
     <el-dialog v-model="aboutDialogVisible" title="关于软件" width="400px" align-center>
       <div class="about-content">
@@ -120,7 +100,7 @@
 
 <script setup>
 import { ref, computed } from "vue";
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 import EditorSession from './EditorSession.vue'
 import { Plus, Search, BrandGithub, QuestionMark, Book, TrashX, Pencil } from "@vicons/tabler";
 import pkg from '../../package.json'  // 导入 package.json 获取版本信息
@@ -130,25 +110,9 @@ const session = inject('session');
 console.log(session.value)
 
 const searchQuery = ref('');
-const createDialogVisible = ref(false);
-const formRef = ref(null);
 const aboutDialogVisible = ref(false)
 
 const selectedMenuItem = ref(session.value.projects.length > 0 ? session.value.projects[0].uuid : '')
-const menuItems = ref([
-  { index: '1', label: '示例项目1' }
-]);
-
-const newItem = ref({
-  label: ''
-});
-
-const rules = {
-  label: [
-    { required: true, message: '请输入项目名称', trigger: 'blur' },
-    { min: 1, max: 20, message: '长度在 1 到 20 个字符', trigger: 'blur' }
-  ]
-};
 
 const filteredMenuItems = computed(() => {
   if (!searchQuery.value) return session.value.projects;
@@ -162,19 +126,23 @@ const handleProjectSelect = (key, keyPath) => {
 }
 
 const handleProjectRename = async (item) => {
-  const newName = await ElMessageBox.prompt(
-    `请输入新的项目名称（最多20个字符）：`,
-    '重命名项目',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      inputPattern: /^.{1,20}$/,
-      inputErrorMessage: '项目名称长度必须在1到20个字符之间'
-    }
-  )
+  try {
+    const newName = await ElMessageBox.prompt(
+      `请输入新的项目名称（最多20个字符）：`,
+      '重命名项目',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputPattern: /^.{1,20}$/,
+        inputErrorMessage: '项目名称长度必须在1到20个字符之间'
+      }
+    )
 
-  if (newName) {
-    session.value.renameProject(item.uuid, newName.value)
+    if (newName) {
+      session.value.renameProject(item.uuid, newName.value)
+    }
+  } catch {
+    // 用户取消重命名
   }
 }
 
@@ -208,39 +176,25 @@ const handleProjectSearch = () => {
   console.log('Searching for:', searchQuery.value);
 }
 
-const handleProjectCreate = () => {
-  createDialogVisible.value = true;
-  newItem.value.label = '';
-  if (formRef.value) {
-    formRef.value.resetFields();
-  }
-}
+const handleProjectCreate = async () => {
+  try {
+    const name = await ElMessageBox.prompt(
+      `请输入新的项目名称（最多20个字符）：`,
+      '创建项目',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputPattern: /^.{1,20}$/,
+        inputErrorMessage: '项目名称长度必须在1到20个字符之间'
+      }
+    )
 
-const submitForm = async () => {
-  if (!formRef.value) return;
-
-  await formRef.value.validate((valid, fields) => {
-    if (valid) {
-      // 生成新的索引
-      const newIndex = (menuItems.value.length + 1).toString();
-
-      // 添加新项目
-      menuItems.value.push({
-        index: newIndex,
-        label: newItem.value.label
-      });
-
-
-      selectedMenuItem.value = session.value.createProject(newItem.value.label)
-
-      // 关闭对话框并显示成功消息
-      createDialogVisible.value = false;
-      ElMessage({
-        message: '添加成功',
-        type: 'success'
-      });
+    if (name) {
+      selectedMenuItem.value = session.value.createProject(name.value)
     }
-  });
+  } catch {
+    // 用户取消创建
+  }
 }
 
 // 添加选择项目的数据

@@ -1,4 +1,4 @@
-import Project from './project';
+import {Project} from './project';
 
 class Session {
     constructor() {
@@ -31,6 +31,7 @@ class Session {
 
     deleteProject(uuid) {
         this.projects = this.projects.filter(project => project.uuid !== uuid);
+        localStorage.removeItem(`project_${uuid}_inner`);
         this.store();
     }
 

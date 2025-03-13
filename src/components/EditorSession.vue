@@ -6,15 +6,16 @@
       <div class="toolbar">
         <!-- 添加标签页 -->
         <div class="tabs-container">
-          <el-tabs v-model="activeTabName" type="card" class="editor-tabs" @tab-remove="removeTab">
-            <el-tab-pane v-for="item in tabs" :key="item.name" :label="item.title" :name="item.name" closable />
-
+          <el-tabs v-model="activeTabName" type="card" class="editor-tabs" @tab-remove="handleFileDelete">
+            <el-tab-pane v-for="item in projectInner.files" :key="item.name"
+              :label="item.name" :name="item.name" closable>
+            </el-tab-pane>
           </el-tabs>
         </div>
 
-        <!-- 原有的工具按钮 -->
+        <!-- 工具按钮 -->
         <div class="tool-buttons">
-          <button @click="addTab" title="新建文件"
+          <button @click="handleFileCreate" title="新建文件"
             style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
             <el-icon :size="20">
               <Plus />
@@ -63,8 +64,8 @@
       <div class="editors-wrapper">
         <!-- 左侧编辑器容器 -->
         <div class="editor-container" :style="{ width: leftWidth + '%' }">
-          <vue-monaco-editor v-model:value="leftEditorContent" theme="vs-light" :options="MONACO_EDITOR_OPTIONS" @mount="handleMount"
-            class="left-editor" />
+          <vue-monaco-editor v-model:value="leftEditorContent" theme="vs-light" :options="MONACO_EDITOR_OPTIONS"
+            @mount="handleMount" class="left-editor" />
         </div>
 
         <!-- 拖动条 -->
@@ -72,8 +73,8 @@
 
         <!-- 右侧编辑器容器 -->
         <div class="editor-container" :style="{ width: (100 - leftWidth) + '%' }">
-          <vue-monaco-editor v-model:value="rightEditorContent" theme="vs-light" :options="MONACO_EDITOR_OPTIONS" @mount="handleMount"
-            class="left-editor" />
+          <vue-monaco-editor v-model:value="rightEditorContent" theme="vs-light" :options="MONACO_EDITOR_OPTIONS"
+            @mount="handleMount" class="left-editor" />
         </div>
       </div>
 
@@ -125,10 +126,7 @@
 import { ref, shallowRef, onMounted, onUnmounted, watch } from 'vue'
 import { Refresh, PlayerPlay, Share, PlayerStop, StepInto, Plus, Settings } from '@vicons/tabler'
 import { ElMessage, ElMessageBox } from 'element-plus'
-
-import { inject } from 'vue';
-
-const session = inject('session');
+import { ProjectInner } from '../models/project'
 
 const props = defineProps({
   selectedIndex: {
@@ -142,6 +140,8 @@ watch(() => props.selectedIndex, (newIndex) => {
   console.log('选中的项目索引:', newIndex)
   // 这里可以添加处理选中项目变化的逻辑
 })
+
+const projectInner = ref(new ProjectInner(props.selectedIndex));
 
 const MONACO_EDITOR_OPTIONS = {
   theme: 'vs',
@@ -384,20 +384,10 @@ const executionData = ref([
   }
 ])
 
-// 标签页数据
-const tabs = ref([
-  {
-    title: 'entry.S',
-    name: '1',
-    content: ''
-  }
-])
-
-const activeTabName = ref('1')
-let tabIndex = 1
+const activeTabName = ref('entry.S')
 
 // 添加新标签页
-const addTab = async () => {
+const handleFileCreate = async () => {
   try {
     const { value: title } = await ElMessageBox.prompt('请输入文件名', '新建文件', {
       confirmButtonText: '确定',
@@ -411,7 +401,7 @@ const addTab = async () => {
           return '文件名必须以 .c 或 .s/.S 结尾'
         }
         // 检查文件名是否重复
-        const isDuplicate = tabs.value.some(tab => tab.title.toLowerCase() === value.toLowerCase())
+        const isDuplicate = projectInner.value.files.some(tab => tab.name.toLowerCase() === value.toLowerCase())
         if (isDuplicate) {
           return '文件名已存在'
         }
@@ -421,14 +411,8 @@ const addTab = async () => {
     })
 
     if (title) {
-      tabIndex++
-      const newTabName = `${tabIndex}`
-      tabs.value.push({
-        title,
-        name: newTabName,
-        content: ''
-      })
-      activeTabName.value = newTabName
+      projectInner.value.createFile(title, '')
+      activeTabName.value = title
     }
   } catch {
     // 用户取消输入
@@ -436,22 +420,22 @@ const addTab = async () => {
 }
 
 // 删除标签页
-const removeTab = (targetName) => {
-  if (tabs.value.length === 1) {
+const handleFileDelete = (targetName) => {
+  if (projectInner.value.files.length === 1) {
     ElMessage.warning('至少保留一个标签页')
     return
-  }
+  } 
 
-  const targetIndex = tabs.value.findIndex(tab => tab.name === targetName)
+  const targetIndex = projectInner.value.files.findIndex(tab => tab.name === targetName)
 
   // 如果删除的是当前激活的标签页，需要激活其他标签页
   if (activeTabName.value === targetName) {
     // 优先激活右侧标签页，如果没有则激活左侧标签页
-    const newActiveTab = tabs.value[targetIndex + 1] || tabs.value[targetIndex - 1]
+    const newActiveTab = projectInner.value.files[targetIndex + 1] || projectInner.value.files[targetIndex - 1]
     activeTabName.value = newActiveTab.name
   }
 
-  tabs.value = tabs.value.filter(tab => tab.name !== targetName)
+  projectInner.value.deleteFile(targetName)
 }
 </script>
 
