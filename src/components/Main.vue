@@ -64,7 +64,7 @@
 
       <!-- 主要内容区域 -->
       <el-main class="main-content">
-        <editor-session :selected-index="selectedMenuItem" />
+        <Workspace :selected-index="selectedMenuItem" />
       </el-main>
     </el-container>
 
@@ -101,7 +101,7 @@
 <script setup>
 import { ref, computed, inject } from "vue";
 import { ElMessageBox } from 'element-plus'
-import EditorSession from './EditorSession.vue'
+import Workspace from './Workspace.vue'
 import { Plus, Search, BrandGithub, QuestionMark, Book, TrashX, Pencil } from "@vicons/tabler";
 import pkg from '../../package.json'  // 导入 package.json 获取版本信息
 import Session from '../models/session'

@@ -1,5 +1,5 @@
 <script setup>
-import MainFrame from './components/MainFrame.vue'
+import Main from './components/Main.vue'
 
 import { provide, ref } from 'vue';
 import { LocalVar } from './models/localvar';
@@ -11,6 +11,6 @@ provide('localVar', localVar);
 
 <template>
   <main>
-    <MainFrame />
+    <Main />
   </main>
 </template>

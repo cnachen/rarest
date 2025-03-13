@@ -88,8 +88,8 @@
 
           <!-- 右侧编辑器容器 -->
           <div class="editor-container" :style="{ width: (100 - leftWidth) + '%' }">
-            <vue-monaco-editor v-model:value="rightEditorContent" theme="vs-light" :options="MONACO_EDITOR_OPTIONS"
-              @mount="handleMount" class="left-editor" />
+            <vue-monaco-editor v-model:value="projectInner.decompiled" theme="vs-light" :options="MONACO_EDITOR_OPTIONS"
+              @mount="handleMount" class="right-editor" />
           </div>
         </div>
 
@@ -197,7 +197,6 @@ const MONACO_EDITOR_OPTIONS = {
 }
 
 const leftEditorContent = ref('// some code...')
-const rightEditorContent = ref('// some code...')
 const editor = shallowRef()
 const handleMount = editorInstance => (editor.value = editorInstance)
 
