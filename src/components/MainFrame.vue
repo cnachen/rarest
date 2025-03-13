@@ -6,6 +6,11 @@
       </div>
 
       <div class="header-right">
+        <span style="font-size: 13px; font-weight: 600; color: var(--el-text-color-regular)">模型:</span>
+        <el-select v-model="selectedProject" placeholder="选择项目" size="small" style="width: 200px; margin-right: 16px;">
+
+          <el-option v-for="item in projectOptions" :key="item.value" :label="item.label" :value="item.value" />
+        </el-select>
         <span style="font-size: 13px; font-weight: 600; color: var(--el-text-color-regular)">版本:</span>
         <el-select v-model="selectedProject" placeholder="选择项目" size="small" style="width: 200px; margin-right: 16px;">
 
@@ -27,23 +32,28 @@
     </el-header>
     <el-container class="main-container">
 
+      <!-- 左侧项目列表 -->
       <el-aside class="sidebar">
         <div class="sidebar-search">
-          <el-input v-model="searchQuery" placeholder="搜索..." :suffix-icon="Search" clearable @input="handleSearch" />
+          <el-input v-model="searchQuery" placeholder="搜索..." :suffix-icon="Search" clearable
+            @input="handleProjectSearch" />
         </div>
-        <el-menu class="el-menu-vertical" :default-active="selectedMenuItem" @select="handleSelect">
-          <el-menu-item v-for="item in filteredMenuItems" :key="item.index" :index="item.index"
+        <el-menu class="el-menu-vertical" :default-active="selectedMenuItem" @select="handleProjectSelect">
+          <el-menu-item v-for="item in filteredMenuItems" :key="item.uuid" :index="item.uuid"
             class="menu-item-with-delete" style="height: 50px; line-height: 50px;">
             <template #title>
-              <span>{{ item.label }}</span>
-              <el-icon class="delete-icon" @click.stop="handleDelete(item)">
+              <span>{{ item.name }}</span>
+              <el-icon class="modify-icon" @click.stop="handleProjectRename(item)">
+                <Pencil />
+              </el-icon>
+              <el-icon class="delete-icon" @click.stop="handleProjectDelete(item)">
                 <TrashX />
               </el-icon>
             </template>
           </el-menu-item>
         </el-menu>
         <div class="add-item-button">
-          <el-button type="primary" text @click="handleAddItem" class="add-button">
+          <el-button type="primary" text @click="handleProjectCreate" class="add-button">
             <el-icon class="add-icon">
               <Plus />
             </el-icon>
@@ -54,13 +64,13 @@
 
       <!-- 主要内容区域 -->
       <el-main class="main-content">
-        <editor-session />
+        <editor-session :selected-index="selectedMenuItem" />
       </el-main>
     </el-container>
 
     <!-- 添加新项目的对话框 -->
-    <el-dialog v-model="dialogVisible" :show-close="false" width="400px" :close-on-click-modal="false" title="添加新项目"
-      :align-center="false" class="add-item-dialog">
+    <el-dialog v-model="createDialogVisible" :show-close="false" width="400px" :close-on-click-modal="false"
+      title="添加新项目" :align-center="false" class="add-item-dialog">
       <el-form :model="newItem" :rules="rules" ref="formRef" label-width="0" class="add-item-form">
         <el-form-item prop="label">
           <div class="form-item-header">
@@ -72,7 +82,7 @@
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button @click="createDialogVisible = false">取消</el-button>
           <el-button type="primary" @click="submitForm">确定</el-button>
         </span>
       </template>
@@ -112,26 +122,21 @@
 import { ref, computed } from "vue";
 import { ElMessage, ElMessageBox } from 'element-plus'
 import EditorSession from './EditorSession.vue'
-import { Plus, Search, BrandGithub, QuestionMark, Book, TrashX } from "@vicons/tabler";
+import { Plus, Search, BrandGithub, QuestionMark, Book, TrashX, Pencil } from "@vicons/tabler";
 import pkg from '../../package.json'  // 导入 package.json 获取版本信息
+import { inject } from 'vue';
+
+const session = inject('session');
+console.log(session.value)
 
 const searchQuery = ref('');
-const dialogVisible = ref(false);
+const createDialogVisible = ref(false);
 const formRef = ref(null);
 const aboutDialogVisible = ref(false)
 
-const selectedMenuItem = ref('1')
+const selectedMenuItem = ref(session.value.projects.length > 0 ? session.value.projects[0].uuid : '')
 const menuItems = ref([
-  { index: '1', label: '选项 1' },
-  { index: '2', label: '选项 2' },
-  { index: '3', label: '选项 3' },
-  { index: '4', label: '选项 4' },
-  { index: '5', label: '选项 5' },
-  { index: '6', label: '选项 6' },
-  { index: '7', label: '选项 7' },
-  { index: '8', label: '选项 8' },
-  { index: '9', label: '选项 9' },
-  { index: '10', label: '选项 10' },
+  { index: '1', label: '示例项目1' }
 ]);
 
 const newItem = ref({
@@ -146,23 +151,65 @@ const rules = {
 };
 
 const filteredMenuItems = computed(() => {
-  if (!searchQuery.value) return menuItems.value;
-  return menuItems.value.filter(item =>
-    item.label.toLowerCase().includes(searchQuery.value.toLowerCase())
+  if (!searchQuery.value) return session.value.projects;
+  return session.value.projects.filter(item =>
+    item.name.toLowerCase().includes(searchQuery.value.toLowerCase())
   );
 });
 
-const handleSelect = (key, keyPath) => {
-  console.log(key, keyPath)
+const handleProjectSelect = (key, keyPath) => {
   selectedMenuItem.value = key
 }
 
-const handleSearch = () => {
+const handleProjectRename = async (item) => {
+  const newName = await ElMessageBox.prompt(
+    `请输入新的项目名称（最多20个字符）：`,
+    '重命名项目',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      inputPattern: /^.{1,20}$/,
+      inputErrorMessage: '项目名称长度必须在1到20个字符之间'
+    }
+  )
+
+  if (newName) {
+    session.value.renameProject(item.uuid, newName.value)
+  }
+}
+
+const handleProjectDelete = async (item) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除 "${item.name}" 吗？`,
+      '提示',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+
+    session.value.deleteProject(item.uuid)
+
+    if (item.uuid == selectedMenuItem.value) {
+      selectedMenuItem.value = session.value.projects.length > 0 ? session.value.projects[0].uuid : ''
+    }
+
+    if (session.value.projects.length == 0) {
+      selectedMenuItem.value = session.value.createProject('未命名')
+    }
+  } catch {
+    // 用户取消删除
+  }
+}
+
+const handleProjectSearch = () => {
   console.log('Searching for:', searchQuery.value);
 }
 
-const handleAddItem = () => {
-  dialogVisible.value = true;
+const handleProjectCreate = () => {
+  createDialogVisible.value = true;
   newItem.value.label = '';
   if (formRef.value) {
     formRef.value.resetFields();
@@ -183,8 +230,11 @@ const submitForm = async () => {
         label: newItem.value.label
       });
 
+
+      selectedMenuItem.value = session.value.createProject(newItem.value.label)
+
       // 关闭对话框并显示成功消息
-      dialogVisible.value = false;
+      createDialogVisible.value = false;
       ElMessage({
         message: '添加成功',
         type: 'success'
@@ -233,26 +283,6 @@ const showAboutDialog = () => {
   aboutDialogVisible.value = true
 }
 
-const handleDelete = async (item) => {
-  try {
-    await ElMessageBox.confirm(
-      `确定要删除 "${item.label}" 吗？`,
-      '提示',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
-    menuItems.value = menuItems.value.filter(i => i.index !== item.index)
-    if (selectedMenuItem.value === item.index) {
-      selectedMenuItem.value = menuItems.value[0].index
-    }
-  } catch {
-    // 用户取消删除
-  }
-}
-
 </script>
 
 <style scoped>
@@ -291,19 +321,24 @@ const handleDelete = async (item) => {
   background-color: #fff;
   border-right: 1px solid #e4e7ed;
   height: 100%;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .sidebar-search {
   padding: 16px;
   border-bottom: 1px solid #e4e7ed;
+  position: sticky;
+  top: 0;
+  background-color: #fff;
+  z-index: 1;
 }
 
 .el-menu-vertical {
   border-right: none;
   flex: 1;
+  overflow-y: auto;
 }
 
 .main-content {
@@ -317,6 +352,10 @@ const handleDelete = async (item) => {
   padding: 16px;
   border-top: 1px solid #e4e7ed;
   text-align: center;
+  position: sticky;
+  bottom: 0;
+  background-color: #fff;
+  z-index: 1;
 }
 
 :deep(.el-button) {
@@ -496,7 +535,20 @@ const handleDelete = async (item) => {
   cursor: pointer;
 }
 
-.menu-item-with-delete:hover .delete-icon {
+.modify-icon {
+  position: absolute;
+  right: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  color: var(--el-text-color-regular);
+  cursor: pointer;
+}
+
+.menu-item-with-delete:hover .delete-icon,
+.menu-item-with-delete:hover .modify-icon {
   opacity: 1;
 }
 

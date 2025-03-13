@@ -63,7 +63,7 @@
       <div class="editors-wrapper">
         <!-- 左侧编辑器容器 -->
         <div class="editor-container" :style="{ width: leftWidth + '%' }">
-          <vue-monaco-editor v-model:value="code" theme="vs-light" :options="MONACO_EDITOR_OPTIONS" @mount="handleMount"
+          <vue-monaco-editor v-model:value="leftEditorContent" theme="vs-light" :options="MONACO_EDITOR_OPTIONS" @mount="handleMount"
             class="left-editor" />
         </div>
 
@@ -72,7 +72,7 @@
 
         <!-- 右侧编辑器容器 -->
         <div class="editor-container" :style="{ width: (100 - leftWidth) + '%' }">
-          <vue-monaco-editor v-model:value="code" theme="vs-light" :options="MONACO_EDITOR_OPTIONS" @mount="handleMount"
+          <vue-monaco-editor v-model:value="rightEditorContent" theme="vs-light" :options="MONACO_EDITOR_OPTIONS" @mount="handleMount"
             class="left-editor" />
         </div>
       </div>
@@ -122,11 +122,26 @@
 </template>
 
 <script setup>
-import { ref, shallowRef, onMounted, onUnmounted } from 'vue'
+import { ref, shallowRef, onMounted, onUnmounted, watch } from 'vue'
 import { Refresh, PlayerPlay, Share, PlayerStop, StepInto, Plus, Settings } from '@vicons/tabler'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
-const code = ref('// some code...')
+import { inject } from 'vue';
+
+const session = inject('session');
+
+const props = defineProps({
+  selectedIndex: {
+    type: String,
+    required: true
+  }
+})
+
+// 监听selectedIndex的变化
+watch(() => props.selectedIndex, (newIndex) => {
+  console.log('选中的项目索引:', newIndex)
+  // 这里可以添加处理选中项目变化的逻辑
+})
 
 const MONACO_EDITOR_OPTIONS = {
   theme: 'vs',
