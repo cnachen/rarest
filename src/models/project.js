@@ -15,15 +15,15 @@ class ProjectInner {
     }
 
     load() {
-        const storedProjectInner = localStorage.getItem(`project_${this.uuid}_inner`);
-        this.files = storedProjectInner ? JSON.parse(storedProjectInner).files : [];
+        const storedProjectInner = localStorage.getItem(`projectInner_${this.uuid}`);
+        this.files = storedProjectInner ? JSON.parse(storedProjectInner).files : [new File('entry.S', '')];
         this.config = storedProjectInner ? JSON.parse(storedProjectInner).config : {};
         this.items = storedProjectInner ? JSON.parse(storedProjectInner).items : [];
         this.decompiled = storedProjectInner ? JSON.parse(storedProjectInner).decompiled : '';
     }
 
     store() {
-        localStorage.setItem(`project_${this.uuid}_inner`, JSON.stringify(this));
+        localStorage.setItem(`projectInner_${this.uuid}`, JSON.stringify(this));
     }
 
     createFile(name, content = '') {

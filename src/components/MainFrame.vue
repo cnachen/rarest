@@ -99,20 +99,22 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, inject } from "vue";
 import { ElMessageBox } from 'element-plus'
 import EditorSession from './EditorSession.vue'
 import { Plus, Search, BrandGithub, QuestionMark, Book, TrashX, Pencil } from "@vicons/tabler";
 import pkg from '../../package.json'  // 导入 package.json 获取版本信息
-import { inject } from 'vue';
+import Session from '../models/session'
 
-const session = inject('session');
+const localVar = inject('localVar');
+
+const session = ref(new Session())
 console.log(session.value)
 
 const searchQuery = ref('');
 const aboutDialogVisible = ref(false)
 
-const selectedMenuItem = ref(session.value.projects.length > 0 ? session.value.projects[0].uuid : '')
+const selectedMenuItem = ref(localVar.getVar('selectedMenuItem') || (session.value.projects.length > 0 ? session.value.projects[0].uuid : ''))
 
 const filteredMenuItems = computed(() => {
   if (!searchQuery.value) return session.value.projects;
@@ -123,6 +125,7 @@ const filteredMenuItems = computed(() => {
 
 const handleProjectSelect = (key, keyPath) => {
   selectedMenuItem.value = key
+  localVar.setVar('selectedMenuItem', key)
 }
 
 const handleProjectRename = async (item) => {
@@ -162,10 +165,7 @@ const handleProjectDelete = async (item) => {
 
     if (item.uuid == selectedMenuItem.value) {
       selectedMenuItem.value = session.value.projects.length > 0 ? session.value.projects[0].uuid : ''
-    }
-
-    if (session.value.projects.length == 0) {
-      selectedMenuItem.value = session.value.createProject('未命名')
+      localVar.setVar('selectedMenuItem', selectedMenuItem.value)
     }
   } catch {
     // 用户取消删除
@@ -191,6 +191,7 @@ const handleProjectCreate = async () => {
 
     if (name) {
       selectedMenuItem.value = session.value.createProject(name.value)
+      localVar.setVar('selectedMenuItem', selectedMenuItem.value)
     }
   } catch {
     // 用户取消创建

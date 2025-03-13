@@ -2,10 +2,11 @@
 import MainFrame from './components/MainFrame.vue'
 
 import { provide, ref } from 'vue';
-import Session from './models/session';
+import { LocalVar } from './models/localvar';
 
-const session = ref(new Session());
-provide('session', session);
+const localVar = new LocalVar();
+provide('localVar', localVar);
+
 </script>
 
 <template>

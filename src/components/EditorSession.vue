@@ -1,124 +1,140 @@
 <template>
   <div class="editor-session">
-    <!-- 左侧列 -->
-    <div class="left-column">
-      <!-- 顶部工具栏 -->
-      <div class="toolbar">
-        <!-- 添加标签页 -->
-        <div class="tabs-container">
-          <el-tabs v-model="activeTabName" type="card" class="editor-tabs" @tab-remove="handleFileDelete">
-            <el-tab-pane v-for="item in projectInner.files" :key="item.name"
-              :label="item.name" :name="item.name" closable>
-            </el-tab-pane>
-          </el-tabs>
-        </div>
-
-        <!-- 工具按钮 -->
-        <div class="tool-buttons">
-          <button @click="handleFileCreate" title="新建文件"
-            style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
-            <el-icon :size="20">
+    <!-- 当selectedIndex为空时显示空白页 -->
+    <template v-if="!props.selectedIndex">
+      <div class="empty-state">
+        <el-empty description="添加新的项目以开始">
+          <template #image>
+            <el-icon :size="64" style="color: var(--el-text-color-secondary)">
               <Plus />
             </el-icon>
-          </button>
-          <button @click="copyLink" title="分享"
-            style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
-            <el-icon :size="20">
-              <Share />
-            </el-icon>
-          </button>
-          <button @click="console.log('compile')" title="编译"
-            style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
-            <el-icon :size="20">
-              <Refresh />
-            </el-icon>
-          </button>
-          <button @click="console.log('run')" title="运行"
-            style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
-            <el-icon :size="20">
-              <PlayerPlay />
-            </el-icon>
-          </button>
-          <button @click="console.log('stop')" title="暂停"
-            style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
-            <el-icon :size="20">
-              <PlayerStop />
-            </el-icon>
-          </button>
-          <button @click="console.log('step')" title="单步"
-            style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
-            <el-icon :size="20">
-              <StepInto />
-            </el-icon>
-          </button>
-          <button @click="console.log('settings')" title="设置"
-            style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
-            <el-icon :size="20">
-              <Settings />
-            </el-icon>
-          </button>
-        </div>
+          </template>
+        </el-empty>
       </div>
+    </template>
 
-      <!-- 编辑器区域 -->
-      <div class="editors-wrapper">
-        <!-- 左侧编辑器容器 -->
-        <div class="editor-container" :style="{ width: leftWidth + '%' }">
-          <vue-monaco-editor v-model:value="leftEditorContent" theme="vs-light" :options="MONACO_EDITOR_OPTIONS"
-            @mount="handleMount" class="left-editor" />
+    <!-- 当selectedIndex存在时显示编辑器界面 -->
+    <template v-else>
+      <!-- 左侧列 -->
+      <div class="left-column">
+        <!-- 顶部工具栏 -->
+        <div class="toolbar">
+          <!-- 添加标签页 -->
+          <div class="tabs-container">
+            <el-tabs v-model="selectedTabName" type="card" class="editor-tabs" @tab-remove="handleFileDelete" @tab-click="handleFileSelected">
+              <el-tab-pane v-for="item in projectInner.files" :key="item.name"
+                :label="item.name" :name="item.name" closable>
+              </el-tab-pane>
+            </el-tabs>
+          </div>
+
+          <!-- 工具按钮 -->
+          <div class="tool-buttons">
+            <button @click="handleFileCreate" title="新建文件"
+              style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
+              <el-icon :size="20">
+                <Plus />
+              </el-icon>
+            </button>
+            <button @click="copyLink" title="分享"
+              style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
+              <el-icon :size="20">
+                <Share />
+              </el-icon>
+            </button>
+            <button @click="console.log('compile')" title="编译"
+              style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
+              <el-icon :size="20">
+                <Refresh />
+              </el-icon>
+            </button>
+            <button @click="console.log('run')" title="运行"
+              style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
+              <el-icon :size="20">
+                <PlayerPlay />
+              </el-icon>
+            </button>
+            <button @click="console.log('stop')" title="暂停"
+              style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
+              <el-icon :size="20">
+                <PlayerStop />
+              </el-icon>
+            </button>
+            <button @click="console.log('step')" title="单步"
+              style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
+              <el-icon :size="20">
+                <StepInto />
+              </el-icon>
+            </button>
+            <button @click="console.log('settings')" title="设置"
+              style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
+              <el-icon :size="20">
+                <Settings />
+              </el-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- 编辑器区域 -->
+        <div class="editors-wrapper">
+          <!-- 左侧编辑器容器 -->
+          <div class="editor-container" :style="{ width: leftWidth + '%' }">
+            <vue-monaco-editor v-model:value="leftEditorContent" theme="vs-light" :options="MONACO_EDITOR_OPTIONS"
+              @mount="handleMount" class="left-editor" />
+          </div>
+
+          <!-- 拖动条 -->
+          <div class="editor-resizer" @mousedown="handleEditorResizerMouseDown"></div>
+
+          <!-- 右侧编辑器容器 -->
+          <div class="editor-container" :style="{ width: (100 - leftWidth) + '%' }">
+            <vue-monaco-editor v-model:value="rightEditorContent" theme="vs-light" :options="MONACO_EDITOR_OPTIONS"
+              @mount="handleMount" class="left-editor" />
+          </div>
         </div>
 
         <!-- 拖动条 -->
-        <div class="editor-resizer" @mousedown="handleEditorResizerMouseDown"></div>
+        <div class="bottom-drag-handle"></div>
 
-        <!-- 右侧编辑器容器 -->
-        <div class="editor-container" :style="{ width: (100 - leftWidth) + '%' }">
-          <vue-monaco-editor v-model:value="rightEditorContent" theme="vs-light" :options="MONACO_EDITOR_OPTIONS"
-            @mount="handleMount" class="left-editor" />
+        <!-- 底部表格区域 -->
+        <div class="bottom-tabs" ref="bottomTabs">
+          <el-tabs v-model="bottomActiveTab" class="bottom-content">
+            <el-tab-pane label="控制台" name="table1">
+              <el-table :data="tableData1" border stripe highlight-current-row>
+                <el-table-column prop="name" label="NAME" />
+                <el-table-column prop="value" label="值" />
+                <el-table-column prop="status" label="状态" />
+                <el-table-column prop="action" label="操作" />
+              </el-table>
+            </el-tab-pane>
+            <el-tab-pane label="内存" name="table2">
+              <el-table :data="tableData2" border stripe highlight-current-row>
+                <el-table-column prop="name" label="名称" />
+                <el-table-column prop="value" label="值" />
+              </el-table>
+            </el-tab-pane>
+          </el-tabs>
         </div>
       </div>
 
-      <!-- 拖动条 -->
-      <div class="bottom-drag-handle"></div>
-
-      <!-- 底部表格区域 -->
-      <div class="bottom-tabs" ref="bottomTabs">
-        <el-tabs v-model="bottomActiveTab" class="bottom-content">
-          <el-tab-pane label="控制台" name="table1">
-            <el-table :data="tableData1" border stripe highlight-current-row>
-              <el-table-column prop="name" label="NAME" />
-              <el-table-column prop="value" label="值" />
-              <el-table-column prop="status" label="状态" />
-              <el-table-column prop="action" label="操作" />
+      <!-- 右侧列 -->
+      <div class="right-column" ref="rightColumn" style="width: 300px">
+        <el-tabs v-model="activeTab" class="session-tabs">
+          <el-tab-pane label="寄存器" name="history">
+            <el-table :data="historyData" style="width: 100%" border stripe highlight-current-row>
+              <el-table-column prop="timestamp" label="时间" width="180" />
+              <el-table-column prop="content" label="内容" />
             </el-table>
           </el-tab-pane>
-          <el-tab-pane label="内存" name="table2">
-            <el-table :data="tableData2" border stripe highlight-current-row>
-              <el-table-column prop="name" label="名称" />
-              <el-table-column prop="value" label="值" />
+          <el-tab-pane label="执行记录" name="execution">
+            <el-table :data="executionData" style="width: 100%" border stripe highlight-current-row>
+              <el-table-column prop="timestamp" label="时间" width="180" />
+              <el-table-column prop="command" label="命令" />
             </el-table>
           </el-tab-pane>
         </el-tabs>
       </div>
-    </div>
-
-    <!-- 右侧列 -->
-    <div class="right-column" ref="rightColumn" style="width: 300px">
-      <el-tabs v-model="activeTab" class="session-tabs">
-        <el-tab-pane label="寄存器" name="history">
-          <el-table :data="historyData" style="width: 100%" border stripe highlight-current-row>
-            <el-table-column prop="timestamp" label="时间" width="180" />
-            <el-table-column prop="content" label="内容" />
-          </el-table>
-        </el-tab-pane>
-        <el-tab-pane label="执行记录" name="execution">
-          <el-table :data="executionData" style="width: 100%" border stripe highlight-current-row>
-            <el-table-column prop="timestamp" label="时间" width="180" />
-            <el-table-column prop="command" label="命令" />
-          </el-table>
-        </el-tab-pane>
-      </el-tabs>
-    </div>
+    </template>
   </div>
 </template>
 
@@ -127,6 +143,7 @@ import { ref, shallowRef, onMounted, onUnmounted, watch } from 'vue'
 import { Refresh, PlayerPlay, Share, PlayerStop, StepInto, Plus, Settings } from '@vicons/tabler'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ProjectInner } from '../models/project'
+import { UUIDVar } from '../models/uuidvar'
 
 const props = defineProps({
   selectedIndex: {
@@ -138,10 +155,13 @@ const props = defineProps({
 // 监听selectedIndex的变化
 watch(() => props.selectedIndex, (newIndex) => {
   console.log('选中的项目索引:', newIndex)
-  // 这里可以添加处理选中项目变化的逻辑
+  projectInner.value = new ProjectInner(newIndex);
+  uuidVar.update(projectInner.value.uuid);
+  selectedTabName.value = uuidVar.getVar(`selectedTabName`) || 'entry.S'
 })
 
 const projectInner = ref(new ProjectInner(props.selectedIndex));
+const uuidVar = new UUIDVar(projectInner.value.uuid)
 
 const MONACO_EDITOR_OPTIONS = {
   theme: 'vs',
@@ -384,7 +404,12 @@ const executionData = ref([
   }
 ])
 
-const activeTabName = ref('entry.S')
+const selectedTabName = ref(uuidVar.getVar(`selectedTabName`) || 'entry.S')
+
+const handleFileSelected = (tab) => {
+  selectedTabName.value = tab.props.name
+  uuidVar.setVar(`selectedTabName`, tab.props.name)
+}
 
 // 添加新标签页
 const handleFileCreate = async () => {
@@ -412,7 +437,8 @@ const handleFileCreate = async () => {
 
     if (title) {
       projectInner.value.createFile(title, '')
-      activeTabName.value = title
+      selectedTabName.value = title
+      uuidVar.setVar(`selectedTabName`, title)
     }
   } catch {
     // 用户取消输入
@@ -429,10 +455,11 @@ const handleFileDelete = (targetName) => {
   const targetIndex = projectInner.value.files.findIndex(tab => tab.name === targetName)
 
   // 如果删除的是当前激活的标签页，需要激活其他标签页
-  if (activeTabName.value === targetName) {
+  if (selectedTabName.value === targetName) {
     // 优先激活右侧标签页，如果没有则激活左侧标签页
     const newActiveTab = projectInner.value.files[targetIndex + 1] || projectInner.value.files[targetIndex - 1]
-    activeTabName.value = newActiveTab.name
+    selectedTabName.value = newActiveTab.name
+    uuidVar.setVar(`selectedTabName`, newActiveTab.name)
   }
 
   projectInner.value.deleteFile(targetName)
@@ -670,5 +697,20 @@ const handleFileDelete = (targetName) => {
 :deep(.el-table) th.el-table__cell>.cell {
   font-weight: 600 !important;
   /* color: var(--el-text-color-primary) !important; */
+}
+
+.empty-state {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--el-bg-color);
+}
+
+:deep(.el-empty__description) {
+  margin-top: 20px;
+  font-size: 16px;
+  color: var(--el-text-color-secondary);
 }
 </style>
