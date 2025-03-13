@@ -81,7 +81,8 @@
           <!-- 左侧编辑器容器 -->
           <div class="editor-container" :style="{ width: leftWidth + '%' }">
             <vue-monaco-editor v-model:value="sourceCode" theme="vs-light" :options="MONACO_EDITOR_OPTIONS"
-              :language="selectedTabName.toLowerCase().endsWith('.s') ? 'assembly' : 'c'" @mount="handleMount" class="left-editor" />
+              :language="selectedTabName.toLowerCase().endsWith('.s') ? 'assembly' : 'c'" @mount="handleMount"
+              class="left-editor" />
           </div>
 
           <!-- 拖动条 -->
@@ -100,18 +101,21 @@
         <!-- 底部表格区域 -->
         <div class="bottom-tabs" ref="bottomTabs">
           <el-tabs v-model="bottomActiveTab" class="bottom-content">
+
             <el-tab-pane label="控制台" name="table1">
-              <el-table :data="tableData1" border stripe highlight-current-row>
-                <el-table-column prop="name" label="NAME" />
-                <el-table-column prop="value" label="值" />
-                <el-table-column prop="status" label="状态" />
-                <el-table-column prop="action" label="操作" />
-              </el-table>
-            </el-tab-pane>
-            <el-tab-pane label="内存" name="table2">
               <el-table :data="tableData2" border stripe highlight-current-row>
                 <el-table-column prop="name" label="名称" />
                 <el-table-column prop="value" label="值" />
+              </el-table>
+            </el-tab-pane>
+            <el-tab-pane label="内存" name="table2">
+              <el-table :data="memoryData" border stripe highlight-current-row>
+                <el-table-column prop="address" label="地址"/>
+                <el-table-column prop="word" label="字"/>
+                <el-table-column prop="byte0" label="字节0" />
+                <el-table-column prop="byte1" label="字节1" />
+                <el-table-column prop="byte2" label="字节2" />
+                <el-table-column prop="byte3" label="字节3" />
               </el-table>
             </el-tab-pane>
           </el-tabs>
@@ -119,11 +123,11 @@
       </div>
 
       <!-- 右侧列 -->
-      <div class="right-column" ref="rightColumn" style="width: 300px">
+      <div class="right-column" ref="rightColumn" style="width: 250px">
         <el-tabs v-model="activeTab" class="session-tabs">
           <el-tab-pane label="寄存器" name="history">
             <el-table :data="registerData" style="width: 100%" border stripe highlight-current-row>
-              <el-table-column prop="key" label="ABI名称" width="180" />
+              <el-table-column prop="key" label="ABI名称" width="80" />
               <el-table-column prop="value" label="值" />
             </el-table>
           </el-tab-pane>
@@ -254,7 +258,7 @@ const handleMouseDown = (e) => {
 const handleMouseMove = (e) => {
   if (!isDragging) return
   const delta = e.clientX - startX
-  const newWidth = Math.max(300, Math.min(800, startWidth - delta))
+  const newWidth = Math.max(250, Math.min(800, startWidth - delta))
   rightColumn.value.style.width = `${newWidth}px`
 }
 
@@ -354,29 +358,41 @@ onUnmounted(() => {
 })
 
 // 模拟数据
-const tableData1 = ref([
+const memoryData = ref([
   {
-    name: '项目1',
-    value: '值1',
-    status: '完成'
+    address: '0x0000000c',
+    word: '0x08070605',
+    byte0: '0x05',
+    byte1: '0x06',
+    byte2: '0x07',
+    byte3: '0x08',
   },
   {
-    name: '项目2',
-    value: '值2',
-    status: '进行中'
+    address: '0x00000008',
+    word: '0x08070605',
+    byte0: '0x05',
+    byte1: '0x06',
+    byte2: '0x07',
+    byte3: '0x08',
   },
   {
-    name: '项目2',
-    value: '值2',
-    status: '失败'
+    address: '0x00000004',
+    word: '0x01020304',
+    byte0: '0x04',
+    byte1: '0x03',
+    byte2: '0x02',
+    byte3: '0x01',
   },
   {
-    name: '项目2',
-    value: '值2',
-    status: '成功'
-  }
-])
+    address: '0x00000000',
+    word: '0x04030201',
+    byte0: '0x01',
+    byte1: '0x02',
+    byte2: '0x03',
+    byte3: '0x04',
+  },
 
+])
 const tableData2 = ref([
   {
     name: '项目A',
@@ -677,7 +693,7 @@ const handleFileDelete = (targetName) => {
 
 .right-column {
   width: 400px;
-  min-width: 300px;
+  min-width: 250px;
   display: flex;
   flex-direction: column;
   background-color: #fff;

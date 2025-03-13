@@ -16,7 +16,7 @@
 
           <el-option v-for="item in projectOptions" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
-        <a href="https://github.com/cnachen/risque" target="_blank"
+        <a href="https://github.com/cnachen/rarest" target="_blank"
           style="display: flex; text-decoration: none; color: var(--el-text-color-regular)" title="GitHub">
           <el-icon :size="20">
             <BrandGithub />
