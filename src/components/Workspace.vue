@@ -102,16 +102,13 @@
         <div class="bottom-tabs" ref="bottomTabs">
           <el-tabs v-model="bottomActiveTab" class="bottom-content">
 
-            <el-tab-pane label="控制台" name="table1">
-              <el-table :data="tableData2" border stripe highlight-current-row>
-                <el-table-column prop="name" label="名称" />
-                <el-table-column prop="value" label="值" />
-              </el-table>
+            <el-tab-pane label="控制台" name="table1" style="font-family: var(--font-mono);">
+              <Console ref="consoleRef" />
             </el-tab-pane>
             <el-tab-pane label="内存" name="table2">
               <el-table :data="memoryData" border stripe highlight-current-row>
-                <el-table-column prop="address" label="地址"/>
-                <el-table-column prop="word" label="字"/>
+                <el-table-column prop="address" label="地址" />
+                <el-table-column prop="word" label="字" />
                 <el-table-column prop="byte0" label="字节0" />
                 <el-table-column prop="byte1" label="字节1" />
                 <el-table-column prop="byte2" label="字节2" />
@@ -144,12 +141,13 @@
 </template>
 
 <script setup>
-import { ref, shallowRef, onMounted, onUnmounted, watch } from 'vue'
+import { ref, shallowRef, onMounted, onUnmounted, watch, inject } from 'vue'
 import { Refresh, PlayerPlay, Share, PlayerStop, StepInto, Plus, Settings } from '@vicons/tabler'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ProjectInner } from '../models/project'
 import { UUIDVar } from '../models/uuidvar'
 import { VueMonacoEditor } from '@guolao/vue-monaco-editor'
+import Console from './Console.vue'
 
 const props = defineProps({
   selectedIndex: {
@@ -169,7 +167,18 @@ watch(() => props.selectedIndex, (newIndex) => {
 })
 
 const projectInner = ref(new ProjectInner(props.selectedIndex));
+const localVar = inject('localVar')
 const uuidVar = new UUIDVar(projectInner.value.uuid)
+
+const consoleRef = ref(null)
+
+// 添加日志
+const consoleAddLog = (content, type = 'info') => {
+  consoleRef.value?.addLog('这是一条信息', 'info')
+  consoleRef.value?.addLog('这是一条错误', 'error')
+  consoleRef.value?.addLog('这是一条警告', 'warning')
+  consoleRef.value?.addLog('这是一条成功信息', 'success')
+}
 
 const selectedTabName = ref(uuidVar.getVar(`selectedTabName`) || 'entry.S')
 
@@ -230,7 +239,7 @@ let startWidth = 0
 let isBottomDragging = false
 let startY = 0
 let startHeight = 0
-let leftWidth = ref(50) // 左侧编辑器宽度百分比
+let leftWidth = ref(localVar.getVar(`leftWidth`) || 60) // 左侧编辑器宽度百分比
 let isEditorResizing = false
 let startEditorX = 0
 let startLeftWidth = 0
@@ -332,6 +341,7 @@ const handleEditorResizerMouseMove = (e) => {
 
   // 限制最小和最大宽度比例（20% - 80%）
   leftWidth.value = Math.min(Math.max(newLeftWidth, 20), 80)
+  localVar.setVar(`leftWidth`, leftWidth.value)
 }
 
 const handleEditorResizerMouseUp = () => {
@@ -462,6 +472,7 @@ const handleCompileButton = () => {
 
 const handleRunButton = () => {
   console.log('run')
+  consoleAddLog()
 }
 
 const handleFileSelected = (tab) => {
