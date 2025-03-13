@@ -12,11 +12,11 @@ const app = createApp(App)
 app.use(ElementPlus)
 
 
-  app.use(VueMonacoEditorPlugin, {
-    paths: {
-      // 在这里更改 CDN 链接加载不同版本
-      vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.43.0/min/vs'
-    },
-  })
+app.use(VueMonacoEditorPlugin, {
+  paths: {
+    // 在这里更改 CDN 链接加载不同版本
+    vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.43.0/min/vs'
+  },
+})
 
 app.mount('#app')

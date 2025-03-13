@@ -24,7 +24,7 @@ class LocalVar {
     delVar(name) {
         delete this.vars[name];
         this.store();
-    }   
+    }
 }
 
 export { LocalVar };

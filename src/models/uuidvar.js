@@ -30,7 +30,7 @@ class UUIDVar {
     delVar(name) {
         delete this.vars[name];
         this.store();
-    }   
+    }
 }
 
 export { UUIDVar };

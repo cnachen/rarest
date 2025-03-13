@@ -21,9 +21,10 @@
         <div class="toolbar">
           <!-- 添加标签页 -->
           <div class="tabs-container">
-            <el-tabs v-model="selectedTabName" type="card" class="editor-tabs" @tab-remove="handleFileDelete" @tab-click="handleFileSelected">
-              <el-tab-pane v-for="item in projectInner.files" :key="item.name"
-                :label="item.name" :name="item.name" closable>
+            <el-tabs v-model="selectedTabName" type="card" class="editor-tabs" @tab-remove="handleFileDelete"
+              @tab-click="handleFileSelected">
+              <el-tab-pane v-for="item in projectInner.files" :key="item.name" :label="item.name" :name="item.name"
+                closable>
               </el-tab-pane>
             </el-tabs>
           </div>
@@ -449,7 +450,7 @@ const handleFileDelete = (targetName) => {
   if (projectInner.value.files.length === 1) {
     ElMessage.warning('至少保留一个标签页')
     return
-  } 
+  }
 
   const targetIndex = projectInner.value.files.findIndex(tab => tab.name === targetName)
 
