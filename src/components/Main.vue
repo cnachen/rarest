@@ -302,6 +302,11 @@ const showAboutDialog = () => {
   border-right: 2px solid #409EFF;
 }
 
+:deep(.el-menu-item span) {
+  font-weight: 500 !important;
+}
+
+
 :deep(.el-menu-item:hover) {
   background-color: #f5f7fa !important;
 }

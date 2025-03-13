@@ -43,13 +43,13 @@
                 <Share />
               </el-icon>
             </button>
-            <button @click="console.log('compile')" title="编译"
+            <button @click="handleCompileButton" title="编译"
               style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
               <el-icon :size="20">
                 <Refresh />
               </el-icon>
             </button>
-            <button @click="console.log('run')" title="运行"
+            <button @click="handleRunButton" title="运行"
               style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
               <el-icon :size="20">
                 <PlayerPlay />
@@ -80,8 +80,8 @@
         <div class="editors-wrapper">
           <!-- 左侧编辑器容器 -->
           <div class="editor-container" :style="{ width: leftWidth + '%' }">
-            <vue-monaco-editor v-model:value="leftEditorContent" theme="vs-light" :options="MONACO_EDITOR_OPTIONS"
-              @mount="handleMount" class="left-editor" />
+            <vue-monaco-editor v-model:value="sourceCode" theme="vs-light" :options="MONACO_EDITOR_OPTIONS"
+              :language="selectedTabName.toLowerCase().endsWith('.s') ? 'assembly' : 'c'" @mount="handleMount" class="left-editor" />
           </div>
 
           <!-- 拖动条 -->
@@ -89,7 +89,7 @@
 
           <!-- 右侧编辑器容器 -->
           <div class="editor-container" :style="{ width: (100 - leftWidth) + '%' }">
-            <vue-monaco-editor v-model:value="projectInner.decompiled" theme="vs-light" :options="MONACO_EDITOR_OPTIONS"
+            <vue-monaco-editor v-model:value="decompiledCode" theme="vs-light" :options="MONACO_EDITOR_OPTIONS"
               @mount="handleMount" class="right-editor" />
           </div>
         </div>
@@ -122,9 +122,9 @@
       <div class="right-column" ref="rightColumn" style="width: 300px">
         <el-tabs v-model="activeTab" class="session-tabs">
           <el-tab-pane label="寄存器" name="history">
-            <el-table :data="historyData" style="width: 100%" border stripe highlight-current-row>
-              <el-table-column prop="timestamp" label="时间" width="180" />
-              <el-table-column prop="content" label="内容" />
+            <el-table :data="registerData" style="width: 100%" border stripe highlight-current-row>
+              <el-table-column prop="key" label="ABI名称" width="180" />
+              <el-table-column prop="value" label="值" />
             </el-table>
           </el-tab-pane>
           <el-tab-pane label="执行记录" name="execution">
@@ -145,6 +145,7 @@ import { Refresh, PlayerPlay, Share, PlayerStop, StepInto, Plus, Settings } from
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ProjectInner } from '../models/project'
 import { UUIDVar } from '../models/uuidvar'
+import { VueMonacoEditor } from '@guolao/vue-monaco-editor'
 
 const props = defineProps({
   selectedIndex: {
@@ -159,14 +160,21 @@ watch(() => props.selectedIndex, (newIndex) => {
   projectInner.value = new ProjectInner(newIndex);
   uuidVar.update(projectInner.value.uuid);
   selectedTabName.value = uuidVar.getVar(`selectedTabName`) || 'entry.S'
+  sourceCode.value = projectInner.value.getFile(selectedTabName.value).content
+  decompiledCode.value = projectInner.value.decompiled
 })
 
 const projectInner = ref(new ProjectInner(props.selectedIndex));
 const uuidVar = new UUIDVar(projectInner.value.uuid)
 
+const selectedTabName = ref(uuidVar.getVar(`selectedTabName`) || 'entry.S')
+
+watch(() => selectedTabName.value, (newValue) => {
+  sourceCode.value = projectInner.value.getFile(newValue).content
+})
+
 const MONACO_EDITOR_OPTIONS = {
   theme: 'vs',
-  language: 'javascript',
   automaticLayout: true,
   minimap: {
     enabled: false
@@ -197,7 +205,9 @@ const MONACO_EDITOR_OPTIONS = {
   hideCursorInOverviewRuler: true
 }
 
-const leftEditorContent = ref('// some code...')
+const sourceCode = ref(projectInner.value.getFile(selectedTabName.value).content)
+const decompiledCode = ref(projectInner.value.decompiled)
+
 const editor = shallowRef()
 const handleMount = editorInstance => (editor.value = editorInstance)
 
@@ -249,7 +259,7 @@ const handleMouseMove = (e) => {
 }
 
 const copyLink = async () => {
-  await navigator.clipboard.writeText(location.href)
+  await navigator.clipboard.writeText(`${location.origin}/readonly/${projectInner.value.uuid}`)
   ElMessage.success('Sharable URL has been copied to clipboard.')
 }
 
@@ -378,17 +388,39 @@ const tableData2 = ref([
   }
 ])
 
-const historyData = ref([
-  {
-    timestamp: '2024-03-13 14:30:00',
-    content: '创建新项目',
-    status: '完成'
-  },
-  {
-    timestamp: '2024-03-13 14:35:00',
-    content: '修改配置文件',
-    status: '进行中'
-  }
+const registerData = ref([
+  { key: 'zero', value: '0x00000000' },
+  { key: 'ra', value: '0x00000000' },
+  { key: 'sp', value: '0x00000000' },
+  { key: 'gp', value: '0x00000000' },
+  { key: 'tp', value: '0x00000000' },
+  { key: 't0', value: '0x00000000' },
+  { key: 't1', value: '0x00000000' },
+  { key: 't2', value: '0x00000000' },
+  { key: 's0', value: '0x00000000' },
+  { key: 's1', value: '0x00000000' },
+  { key: 'a0', value: '0x00000000' },
+  { key: 'a1', value: '0x00000000' },
+  { key: 'a2', value: '0x00000000' },
+  { key: 'a3', value: '0x00000000' },
+  { key: 'a4', value: '0x00000000' },
+  { key: 'a5', value: '0x00000000' },
+  { key: 'a6', value: '0x00000000' },
+  { key: 'a7', value: '0x00000000' },
+  { key: 's2', value: '0x00000000' },
+  { key: 's3', value: '0x00000000' },
+  { key: 's4', value: '0x00000000' },
+  { key: 's5', value: '0x00000000' },
+  { key: 's6', value: '0x00000000' },
+  { key: 's7', value: '0x00000000' },
+  { key: 's8', value: '0x00000000' },
+  { key: 's9', value: '0x00000000' },
+  { key: 's10', value: '0x00000000' },
+  { key: 's11', value: '0x00000000' },
+  { key: 't3', value: '0x00000000' },
+  { key: 't4', value: '0x00000000' },
+  { key: 't5', value: '0x00000000' },
+  { key: 't6', value: '0x00000000' }
 ])
 
 const executionData = ref([
@@ -404,7 +436,17 @@ const executionData = ref([
   }
 ])
 
-const selectedTabName = ref(uuidVar.getVar(`selectedTabName`) || 'entry.S')
+const handleCompileButton = () => {
+  console.log('compile')
+  projectInner.value.updateFile(selectedTabName.value, sourceCode.value)
+  projectInner.value.decompiled = sourceCode.value
+  decompiledCode.value = projectInner.value.decompiled
+  ElMessage.success('编译成功')
+}
+
+const handleRunButton = () => {
+  console.log('run')
+}
 
 const handleFileSelected = (tab) => {
   selectedTabName.value = tab.props.name
