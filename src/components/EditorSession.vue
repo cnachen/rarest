@@ -4,52 +4,58 @@
     <div class="left-column">
       <!-- 顶部工具栏 -->
       <div class="toolbar">
+        <!-- 添加标签页 -->
+        <div class="tabs-container">
+          <el-tabs v-model="activeTabName" type="card" class="editor-tabs" @tab-remove="removeTab">
+            <el-tab-pane v-for="item in tabs" :key="item.name" :label="item.title" :name="item.name" closable />
+
+          </el-tabs>
+        </div>
+
+        <!-- 原有的工具按钮 -->
         <div class="tool-buttons">
-          <button 
-              @click="console.log('compile')" 
-              title="分享"
-              style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)"
-            >
-              <el-icon :size="20">
-                <Share />
-              </el-icon>
-            </button>
-          <button 
-              @click="console.log('compile')" 
-              title="编译"
-              style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)"
-            >
-              <el-icon :size="20">
-                <Refresh />
-              </el-icon>
-            </button>
-            <button 
-              @click="console.log('run')" 
-              title="运行"
-              style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)"
-            >
-              <el-icon :size="20">
-                <PlayerPlay />
-              </el-icon>
-            </button>
-            <button 
-              @click="console.log('stop')" 
-              title="暂停"
-              style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)"
-            >
-              <el-icon :size="20">
-                <PlayerStop />
-              </el-icon>
-            </button>
-            <button 
-              @click="console.log('step')" 
-              title="单步"
-              style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)"
-            >
-              <el-icon :size="20">
-                <StepInto />
-              </el-icon>
-            </button>
+          <button @click="addTab" title="新建文件"
+            style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
+            <el-icon :size="20">
+              <Plus />
+            </el-icon>
+          </button>
+          <button @click="copyLink" title="分享"
+            style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
+            <el-icon :size="20">
+              <Share />
+            </el-icon>
+          </button>
+          <button @click="console.log('compile')" title="编译"
+            style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
+            <el-icon :size="20">
+              <Refresh />
+            </el-icon>
+          </button>
+          <button @click="console.log('run')" title="运行"
+            style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
+            <el-icon :size="20">
+              <PlayerPlay />
+            </el-icon>
+          </button>
+          <button @click="console.log('stop')" title="暂停"
+            style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
+            <el-icon :size="20">
+              <PlayerStop />
+            </el-icon>
+          </button>
+          <button @click="console.log('step')" title="单步"
+            style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
+            <el-icon :size="20">
+              <StepInto />
+            </el-icon>
+          </button>
+          <button @click="console.log('settings')" title="设置"
+            style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
+            <el-icon :size="20">
+              <Settings />
+            </el-icon>
+          </button>
         </div>
       </div>
 
@@ -57,13 +63,8 @@
       <div class="editors-wrapper">
         <!-- 左侧编辑器容器 -->
         <div class="editor-container" :style="{ width: leftWidth + '%' }">
-        <vue-monaco-editor
-    v-model:value="code"
-    theme="vs-light"
-    :options="MONACO_EDITOR_OPTIONS"
-    @mount="handleMount"
-    class="left-editor"
-  />
+          <vue-monaco-editor v-model:value="code" theme="vs-light" :options="MONACO_EDITOR_OPTIONS" @mount="handleMount"
+            class="left-editor" />
         </div>
 
         <!-- 拖动条 -->
@@ -71,13 +72,8 @@
 
         <!-- 右侧编辑器容器 -->
         <div class="editor-container" :style="{ width: (100 - leftWidth) + '%' }">
-          <vue-monaco-editor
-    v-model:value="code"
-    theme="vs-light"
-    :options="MONACO_EDITOR_OPTIONS"
-    @mount="handleMount"
-    class="left-editor"
-  />
+          <vue-monaco-editor v-model:value="code" theme="vs-light" :options="MONACO_EDITOR_OPTIONS" @mount="handleMount"
+            class="left-editor" />
         </div>
       </div>
 
@@ -127,7 +123,8 @@
 
 <script setup>
 import { ref, shallowRef, onMounted, onUnmounted } from 'vue'
-import { Refresh, PlayerPlay, Share, PlayerStop, StepInto} from '@vicons/tabler'
+import { Refresh, PlayerPlay, Share, PlayerStop, StepInto, Plus, Settings } from '@vicons/tabler'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const code = ref('// some code...')
 
@@ -193,18 +190,18 @@ const handleMouseDown = (e) => {
   // 检查是否点击在拖拽区域（before伪元素）上
   const rect = rightColumn.value.getBoundingClientRect()
   const isInDragArea = e.clientX >= rect.left - 5 && e.clientX <= rect.left + 5
-  
+
   if (!isInDragArea) return
-  
+
   isDragging = true
   startX = e.clientX
   startWidth = rightColumn.value.offsetWidth
-  
+
   // 添加鼠标样式
   document.body.style.cursor = 'col-resize'
   // 防止文本选择
   document.body.style.userSelect = 'none'
-  
+
   document.addEventListener('mousemove', handleMouseMove)
   document.addEventListener('mouseup', handleMouseUp)
 }
@@ -216,26 +213,31 @@ const handleMouseMove = (e) => {
   rightColumn.value.style.width = `${newWidth}px`
 }
 
+const copyLink = async () => {
+  await navigator.clipboard.writeText(location.href)
+  ElMessage.success('Sharable URL has been copied to clipboard.')
+}
+
 const handleMouseUp = () => {
   isDragging = false
   // 恢复鼠标样式和文本选择
   document.body.style.cursor = ''
   document.body.style.userSelect = ''
-  
+
   document.removeEventListener('mousemove', handleMouseMove)
   document.removeEventListener('mouseup', handleMouseUp)
 }
 
 const handleBottomMouseDown = (e) => {
   if (!e.target.classList.contains('bottom-drag-handle')) return
-  
+
   isBottomDragging = true
   startY = e.clientY
   startHeight = bottomTabs.value.offsetHeight
-  
+
   document.body.style.cursor = 'row-resize'
   document.body.style.userSelect = 'none'
-  
+
   document.addEventListener('mousemove', handleBottomMouseMove)
   document.addEventListener('mouseup', handleBottomMouseUp)
 }
@@ -251,7 +253,7 @@ const handleBottomMouseUp = () => {
   isBottomDragging = false
   document.body.style.cursor = ''
   document.body.style.userSelect = ''
-  
+
   document.removeEventListener('mousemove', handleBottomMouseMove)
   document.removeEventListener('mouseup', handleBottomMouseUp)
 }
@@ -260,25 +262,25 @@ const handleEditorResizerMouseDown = (e) => {
   isEditorResizing = true
   startEditorX = e.clientX
   startLeftWidth = leftWidth.value
-  
+
   document.body.style.cursor = 'col-resize'
   document.body.style.userSelect = 'none'
-  
+
   document.addEventListener('mousemove', handleEditorResizerMouseMove)
   document.addEventListener('mouseup', handleEditorResizerMouseUp)
 }
 
 const handleEditorResizerMouseMove = (e) => {
   if (!isEditorResizing) return
-  
+
   const container = document.querySelector('.editors-wrapper')
   const deltaX = e.clientX - startEditorX
   const containerWidth = container.offsetWidth
-  
+
   // 计算宽度变化的百分比
   const deltaPercent = (deltaX / containerWidth) * 100
   const newLeftWidth = startLeftWidth + deltaPercent
-  
+
   // 限制最小和最大宽度比例（20% - 80%）
   leftWidth.value = Math.min(Math.max(newLeftWidth, 20), 80)
 }
@@ -287,7 +289,7 @@ const handleEditorResizerMouseUp = () => {
   isEditorResizing = false
   document.body.style.cursor = ''
   document.body.style.userSelect = ''
-  
+
   document.removeEventListener('mousemove', handleEditorResizerMouseMove)
   document.removeEventListener('mouseup', handleEditorResizerMouseUp)
 }
@@ -366,6 +368,76 @@ const executionData = ref([
     status: '失败'
   }
 ])
+
+// 标签页数据
+const tabs = ref([
+  {
+    title: 'entry.S',
+    name: '1',
+    content: ''
+  }
+])
+
+const activeTabName = ref('1')
+let tabIndex = 1
+
+// 添加新标签页
+const addTab = async () => {
+  try {
+    const { value: title } = await ElMessageBox.prompt('请输入文件名', '新建文件', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      inputValidator: (value) => {
+        if (!value) {
+          return '文件名不能为空'
+        }
+        // 验证文件后缀名
+        if (!value.endsWith('.c') && !value.toLowerCase().endsWith('.s')) {
+          return '文件名必须以 .c 或 .s/.S 结尾'
+        }
+        // 检查文件名是否重复
+        const isDuplicate = tabs.value.some(tab => tab.title.toLowerCase() === value.toLowerCase())
+        if (isDuplicate) {
+          return '文件名已存在'
+        }
+        return true
+      },
+      inputErrorMessage: '文件名格式不正确'
+    })
+
+    if (title) {
+      tabIndex++
+      const newTabName = `${tabIndex}`
+      tabs.value.push({
+        title,
+        name: newTabName,
+        content: ''
+      })
+      activeTabName.value = newTabName
+    }
+  } catch {
+    // 用户取消输入
+  }
+}
+
+// 删除标签页
+const removeTab = (targetName) => {
+  if (tabs.value.length === 1) {
+    ElMessage.warning('至少保留一个标签页')
+    return
+  }
+
+  const targetIndex = tabs.value.findIndex(tab => tab.name === targetName)
+
+  // 如果删除的是当前激活的标签页，需要激活其他标签页
+  if (activeTabName.value === targetName) {
+    // 优先激活右侧标签页，如果没有则激活左侧标签页
+    const newActiveTab = tabs.value[targetIndex + 1] || tabs.value[targetIndex - 1]
+    activeTabName.value = newActiveTab.name
+  }
+
+  tabs.value = tabs.value.filter(tab => tab.name !== targetName)
+}
 </script>
 
 <style scoped>
@@ -390,8 +462,65 @@ const executionData = ref([
   border-bottom: 1px solid var(--el-border-color-light);
   display: flex;
   align-items: center;
-  justify-content: flex-end;
   height: 40px;
+  gap: 16px;
+}
+
+.tabs-container {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.editor-tabs {
+  flex: 1;
+  min-width: 0;
+}
+
+:deep(.el-tabs__header) {
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+:deep(.el-tabs__nav-wrap) {
+  padding: 0;
+  overflow: hidden;
+}
+
+:deep(.el-tabs__nav-scroll) {
+  overflow: hidden;
+}
+
+:deep(.el-tabs__nav) {
+  border: none;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+}
+
+:deep(.el-tabs__item) {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.add-tab-button {
+  width: 20px;
+  height: 20px;
+  margin-left: 8px;
+  cursor: pointer;
+  color: var(--el-text-color-regular);
+  transition: color 0.3s;
+  padding: 2px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.add-tab-button:hover {
+  color: var(--el-color-primary);
+  background-color: var(--el-color-primary-light-9);
 }
 
 .tool-buttons {
@@ -539,7 +668,7 @@ const executionData = ref([
   font-family: var(--font-mono);
 }
 
-:deep(.el-table) th.el-table__cell > .cell {
+:deep(.el-table) th.el-table__cell>.cell {
   font-weight: 600 !important;
   /* color: var(--el-text-color-primary) !important; */
 }

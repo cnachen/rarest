@@ -1,79 +1,52 @@
 <template>
-    <el-container class="layout">
-      <el-header class="header"
-      >
-        <div class="logo">{{ softwareInfo.name }}
-          <el-tag size="small"
-          >v{{ softwareInfo.version }}, riscv64i</el-tag
-        ></div>
+  <el-container class="layout">
+    <el-header class="header">
+      <div class="logo">{{ softwareInfo.name }}
+        <el-tag size="small">v{{ softwareInfo.version }}, riscv64i</el-tag>
+      </div>
 
-          <div class="header-right">
-            <span style="font-size: 13px; font-weight: 600; color: var(--el-text-color-regular)">Version:</span>
-            <el-select
-              v-model="selectedProject"
-              placeholder="选择项目"
-              size="small"
-              style="width: 200px; margin-right: 16px;"
-            >
-           
-              <el-option
-                v-for="item in projectOptions"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              />
-            </el-select>
-            <a
-              href="https://github.com/cnachen/risque"
-              target="_blank"
-              style="display: flex; text-decoration: none; color: var(--el-text-color-regular)"
-              title="GitHub"
-            >
-              <el-icon :size="20">
-                <BrandGithub />
-              </el-icon>
-            </a>
-            <button 
-              @click="showAboutDialog"
-              title="关于"
-              style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)"
-            >
-              <el-icon :size="20">
-                <QuestionMark />
-              </el-icon>
-            </button>
-          </div>
-      </el-header>
-      <el-container class="main-container">
+      <div class="header-right">
+        <span style="font-size: 13px; font-weight: 600; color: var(--el-text-color-regular)">版本:</span>
+        <el-select v-model="selectedProject" placeholder="选择项目" size="small" style="width: 200px; margin-right: 16px;">
+
+          <el-option v-for="item in projectOptions" :key="item.value" :label="item.label" :value="item.value" />
+        </el-select>
+        <a href="https://github.com/cnachen/risque" target="_blank"
+          style="display: flex; text-decoration: none; color: var(--el-text-color-regular)" title="GitHub">
+          <el-icon :size="20">
+            <BrandGithub />
+          </el-icon>
+        </a>
+        <button @click="showAboutDialog" title="关于"
+          style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
+          <el-icon :size="20">
+            <QuestionMark />
+          </el-icon>
+        </button>
+      </div>
+    </el-header>
+    <el-container class="main-container">
 
       <el-aside class="sidebar">
         <div class="sidebar-search">
-          <el-input
-            v-model="searchQuery"
-            placeholder="搜索..."
-            :suffix-icon="Search"
-            clearable
-            @input="handleSearch"
-          />
+          <el-input v-model="searchQuery" placeholder="搜索..." :suffix-icon="Search" clearable @input="handleSearch" />
         </div>
-        <el-menu default-active="1" class="el-menu-vertical">
-          <el-menu-item 
-            v-for="item in filteredMenuItems" 
-            :key="item.index" 
-            :index="item.index"
-            style="font-weight: 500; color: var(--el-text-color-regular)"
-          >
-            {{ item.label }}
+        <el-menu class="el-menu-vertical" :default-active="selectedMenuItem" @select="handleSelect">
+          <el-menu-item v-for="item in filteredMenuItems" :key="item.index" :index="item.index"
+            class="menu-item-with-delete" style="height: 50px; line-height: 50px;">
+            <template #title>
+              <span>{{ item.label }}</span>
+              <el-icon class="delete-icon" @click.stop="handleDelete(item)">
+                <TrashX />
+              </el-icon>
+            </template>
           </el-menu-item>
         </el-menu>
         <div class="add-item-button">
-          <el-button 
-            type="primary" 
-            text 
-            @click="handleAddItem"
-            class="add-button"
-          >
-            <el-icon class="add-icon"><Plus /></el-icon>
+          <el-button type="primary" text @click="handleAddItem" class="add-button">
+            <el-icon class="add-icon">
+              <Plus />
+            </el-icon>
             <span class="add-text" style="font-weight: 500">添加新项目</span>
           </el-button>
         </div>
@@ -86,33 +59,15 @@
     </el-container>
 
     <!-- 添加新项目的对话框 -->
-    <el-dialog
-      v-model="dialogVisible"
-      :show-close="false"
-      width="400px"
-      :close-on-click-modal="false"
-      title="添加新项目"
-      :align-center="false"
-      class="add-item-dialog"
-    >
-      <el-form 
-        :model="newItem" 
-        :rules="rules" 
-        ref="formRef" 
-        label-width="0"
-        class="add-item-form"
-      >
+    <el-dialog v-model="dialogVisible" :show-close="false" width="400px" :close-on-click-modal="false" title="添加新项目"
+      :align-center="false" class="add-item-dialog">
+      <el-form :model="newItem" :rules="rules" ref="formRef" label-width="0" class="add-item-form">
         <el-form-item prop="label">
           <div class="form-item-header">
             <span class="form-item-label">项目名称</span>
             <span class="form-item-required">*</span>
           </div>
-          <el-input 
-            v-model="newItem.label" 
-            placeholder="请输入项目名称（最多20个字符）"
-            maxlength="20"
-            show-word-limit
-          />
+          <el-input v-model="newItem.label" placeholder="请输入项目名称（最多20个字符）" maxlength="20" show-word-limit />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -124,12 +79,7 @@
     </el-dialog>
 
     <!-- 关于软件的对话框 -->
-    <el-dialog
-      v-model="aboutDialogVisible"
-      title="关于软件"
-      width="400px"
-      align-center
-    >
+    <el-dialog v-model="aboutDialogVisible" title="关于软件" width="400px" align-center>
       <div class="about-content">
         <h3>{{ softwareInfo.name }}</h3>
         <p>{{ softwareInfo.description }}</p>
@@ -140,10 +90,14 @@
         </div>
         <div class="about-links">
           <a :href="softwareInfo.repository" target="_blank" rel="noopener noreferrer">
-            <el-icon><BrandGithub /></el-icon> GitHub
+            <el-icon>
+              <BrandGithub />
+            </el-icon> GitHub
           </a>
           <a :href="softwareInfo.homepage" target="_blank" rel="noopener noreferrer">
-            <el-icon><Book /></el-icon> 文档
+            <el-icon>
+              <Book />
+            </el-icon> 文档
           </a>
         </div>
         <div class="about-footer">
@@ -151,354 +105,410 @@
         </div>
       </div>
     </el-dialog>
-    </el-container>
-  </template>
-  
-  <script setup>
-  import { ref, computed } from "vue";
-  import { ElMessage } from 'element-plus'
-  import EditorSession from './EditorSession.vue'
-  import { Plus, Search, BrandGithub, QuestionMark, Book } from "@vicons/tabler";
-  import pkg from '../../package.json'  // 导入 package.json 获取版本信息
+  </el-container>
+</template>
 
-  const searchQuery = ref('');
-  const dialogVisible = ref(false);
-  const formRef = ref(null);
-  const aboutDialogVisible = ref(false)
-  
-  const menuItems = ref([
-    { index: '1', label: '选项 1' },
-    { index: '2', label: '选项 2' },
-    { index: '3', label: '选项 3' },
-    { index: '4', label: '选项 4' },
-    { index: '5', label: '选项 5' },
-    { index: '6', label: '选项 6' },
-    { index: '7', label: '选项 7' },
-    { index: '8', label: '选项 8' },
-    { index: '9', label: '选项 9' },
-    { index: '10', label: '选项 10' },
-  ]);
+<script setup>
+import { ref, computed } from "vue";
+import { ElMessage, ElMessageBox } from 'element-plus'
+import EditorSession from './EditorSession.vue'
+import { Plus, Search, BrandGithub, QuestionMark, Book, TrashX } from "@vicons/tabler";
+import pkg from '../../package.json'  // 导入 package.json 获取版本信息
 
-  const newItem = ref({
-    label: ''
-  });
+const searchQuery = ref('');
+const dialogVisible = ref(false);
+const formRef = ref(null);
+const aboutDialogVisible = ref(false)
 
-  const rules = {
-    label: [
-      { required: true, message: '请输入项目名称', trigger: 'blur' },
-      { min: 1, max: 20, message: '长度在 1 到 20 个字符', trigger: 'blur' }
-    ]
-  };
+const selectedMenuItem = ref('1')
+const menuItems = ref([
+  { index: '1', label: '选项 1' },
+  { index: '2', label: '选项 2' },
+  { index: '3', label: '选项 3' },
+  { index: '4', label: '选项 4' },
+  { index: '5', label: '选项 5' },
+  { index: '6', label: '选项 6' },
+  { index: '7', label: '选项 7' },
+  { index: '8', label: '选项 8' },
+  { index: '9', label: '选项 9' },
+  { index: '10', label: '选项 10' },
+]);
 
-  const filteredMenuItems = computed(() => {
-    if (!searchQuery.value) return menuItems.value;
-    return menuItems.value.filter(item => 
-      item.label.toLowerCase().includes(searchQuery.value.toLowerCase())
-    );
-  });
+const newItem = ref({
+  label: ''
+});
 
-  const handleSelect = (key, keyPath) => {
-    console.log(key, keyPath)
-  }
-
-  const handleSearch = () => {
-    console.log('Searching for:', searchQuery.value);
-  }
-
-  const handleAddItem = () => {
-    dialogVisible.value = true;
-    newItem.value.label = '';
-    if (formRef.value) {
-      formRef.value.resetFields();
-    }
-  }
-
-  const submitForm = async () => {
-    if (!formRef.value) return;
-    
-    await formRef.value.validate((valid, fields) => {
-      if (valid) {
-        // 生成新的索引
-        const newIndex = (menuItems.value.length + 1).toString();
-        
-        // 添加新项目
-        menuItems.value.push({
-          index: newIndex,
-          label: newItem.value.label
-        });
-
-        // 关闭对话框并显示成功消息
-        dialogVisible.value = false;
-        ElMessage({
-          message: '添加成功',
-          type: 'success'
-        });
-      }
-    });
-  }
-
-  // 添加选择项目的数据
-  const selectedProject = ref('')
-  const projectOptions = [
-    {
-      value: 'project1',
-      label: '示例项目 1'
-    },
-    {
-      value: 'project2',
-      label: '示例项目 2'
-    },
-    {
-      value: 'project3',
-      label: '示例项目 3'
-    },
-    {
-      value: 'project4',
-      label: '示例项目 4'
-    },
-    {
-      value: 'project5',
-      label: '示例项目 5'
-    }
+const rules = {
+  label: [
+    { required: true, message: '请输入项目名称', trigger: 'blur' },
+    { min: 1, max: 20, message: '长度在 1 到 20 个字符', trigger: 'blur' }
   ]
+};
 
-  const softwareInfo = {
-    name: 'Risqué',
-    version: pkg.version || '1.0.0',
-    description: '一个强大的调试工具',
-    author: pkg.author || 'Cnachen',
-    license: pkg.license || 'MIT',
-    repository: pkg.repository?.url || 'https://github.com/cnachen/risque',
-    homepage: pkg.homepage || 'https://github.com/cnachen/risque',
-    dependencies: pkg.dependencies || {}
-  }
+const filteredMenuItems = computed(() => {
+  if (!searchQuery.value) return menuItems.value;
+  return menuItems.value.filter(item =>
+    item.label.toLowerCase().includes(searchQuery.value.toLowerCase())
+  );
+});
 
-  const showAboutDialog = () => {
-    aboutDialogVisible.value = true
-  }
+const handleSelect = (key, keyPath) => {
+  console.log(key, keyPath)
+  selectedMenuItem.value = key
+}
 
-  </script>
-  
-  <style scoped>
-  .layout {
-    height: 100vh;
-    width: 100vw;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
+const handleSearch = () => {
+  console.log('Searching for:', searchQuery.value);
+}
 
-  .main-container {
-    flex: 1;
-    display: flex;
-    overflow: hidden;
+const handleAddItem = () => {
+  dialogVisible.value = true;
+  newItem.value.label = '';
+  if (formRef.value) {
+    formRef.value.resetFields();
   }
+}
 
-  .header {
-    height: 50px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
-    border-bottom: 1px solid #e4e7ed;
-    background-color: #fff;
-  }
-  
-  .logo {
-    font-size: 20px;
-    font-weight: bold;
-    color: #409EFF;
-  }
+const submitForm = async () => {
+  if (!formRef.value) return;
 
-  .sidebar {
-    width: 200px;
-    background-color: #fff;
-    border-right: 1px solid #e4e7ed;
-    height: 100%;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-  }
+  await formRef.value.validate((valid, fields) => {
+    if (valid) {
+      // 生成新的索引
+      const newIndex = (menuItems.value.length + 1).toString();
 
-  .sidebar-search {
-    padding: 16px;
-    border-bottom: 1px solid #e4e7ed;
-  }
+      // 添加新项目
+      menuItems.value.push({
+        index: newIndex,
+        label: newItem.value.label
+      });
 
-  .el-menu-vertical {
-    border-right: none;
-    flex: 1;
-  }
+      // 关闭对话框并显示成功消息
+      dialogVisible.value = false;
+      ElMessage({
+        message: '添加成功',
+        type: 'success'
+      });
+    }
+  });
+}
 
-  .main-content {
-    flex: 1;
-    background-color: #f5f7fa;
-    overflow: hidden;
-    padding: 0;
+// 添加选择项目的数据
+const selectedProject = ref('')
+const projectOptions = [
+  {
+    value: 'project1',
+    label: '示例项目 1'
+  },
+  {
+    value: 'project2',
+    label: '示例项目 2'
+  },
+  {
+    value: 'project3',
+    label: '示例项目 3'
+  },
+  {
+    value: 'project4',
+    label: '示例项目 4'
+  },
+  {
+    value: 'project5',
+    label: '示例项目 5'
   }
+]
 
-  .add-item-button {
-    padding: 16px;
-    border-top: 1px solid #e4e7ed;
-    text-align: center;
-  }
+const softwareInfo = {
+  name: 'Risqué',
+  version: pkg.version || '1.0.0',
+  description: '一个强大的调试工具',
+  author: pkg.author || 'Cnachen',
+  license: pkg.license || 'MIT',
+  repository: pkg.repository?.url || 'https://github.com/cnachen/risque',
+  homepage: pkg.homepage || 'https://github.com/cnachen/risque',
+  dependencies: pkg.dependencies || {}
+}
 
-  :deep(.el-button) {
-    width: 100%;
-    justify-content: center;
-  }
+const showAboutDialog = () => {
+  aboutDialogVisible.value = true
+}
 
-  :deep(.el-button .el-icon) {
-    margin-right: 4px;
+const handleDelete = async (item) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除 "${item.label}" 吗？`,
+      '提示',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+    menuItems.value = menuItems.value.filter(i => i.index !== item.index)
+    if (selectedMenuItem.value === item.index) {
+      selectedMenuItem.value = menuItems.value[0].index
+    }
+  } catch {
+    // 用户取消删除
   }
+}
 
-  /* 确保 Element Plus 组件样式正确 */
-  :deep(.el-menu--horizontal) {
-    border-bottom: none;
-  }
+</script>
 
-  :deep(.el-menu-item) {
-    display: flex;
-    align-items: center;
-  }
+<style scoped>
+.layout {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
 
-  :deep(.el-menu-item.is-active) {
-    background-color: #ecf5ff !important;
-    border-right: 2px solid #409EFF;
-  }
+.main-container {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
 
-  :deep(.el-menu-item:hover) {
-    background-color: #f5f7fa !important;
-  }
+.header {
+  height: 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  border-bottom: 1px solid #e4e7ed;
+  background-color: #fff;
+}
 
-  :deep(.el-icon) {
-    margin-right: 5px;
-  }
+.logo {
+  font-size: 20px;
+  font-weight: bold;
+  color: #409EFF;
+}
 
-  .add-item-dialog {
-    border-radius: 8px;
-  }
+.sidebar {
+  width: 200px;
+  background-color: #fff;
+  border-right: 1px solid #e4e7ed;
+  height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
 
-  .add-item-form {
-    padding: 20px 20px 0;
-  }
+.sidebar-search {
+  padding: 16px;
+  border-bottom: 1px solid #e4e7ed;
+}
 
-  .form-item-header {
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
+.el-menu-vertical {
+  border-right: none;
+  flex: 1;
+}
 
-  .form-item-label {
-    font-size: 14px;
-    color: #606266;
-    font-weight: 500;
-  }
+.main-content {
+  flex: 1;
+  background-color: #f5f7fa;
+  overflow: hidden;
+  padding: 0;
+}
 
-  .form-item-required {
-    color: #f56c6c;
-    font-size: 14px;
-    margin-left: 2px;
-  }
+.add-item-button {
+  padding: 16px;
+  border-top: 1px solid #e4e7ed;
+  text-align: center;
+}
 
-  .dialog-footer {
-    display: inline-flex;
-    gap: 12px;
-  }
+:deep(.el-button) {
+  width: 100%;
+  justify-content: center;
+}
 
-  :deep(.el-dialog__footer) {
-    padding: 12px 20px;
-    margin-top: 20px;
-    border-top: 1px solid #e4e7ed;
-    text-align: right;
-  }
+:deep(.el-button .el-icon) {
+  margin-right: 4px;
+}
 
-  :deep(.el-input__wrapper) {
-    box-shadow: none;
-    border: 1px solid #dcdfe6;
-    transition: all 0.3s;
-  }
+/* 确保 Element Plus 组件样式正确 */
+:deep(.el-menu--horizontal) {
+  border-bottom: none;
+}
 
-  :deep(.el-input__wrapper:hover) {
-    border-color: #409eff;
-  }
+:deep(.el-menu-item) {
+  display: flex;
+  align-items: center;
+}
 
-  :deep(.el-input__wrapper.is-focus) {
-    border-color: #409eff;
-    box-shadow: 0 0 0 1px #409eff;
-  }
+:deep(.el-menu-item.is-active) {
+  background-color: #ecf5ff !important;
+  border-right: 2px solid #409EFF;
+}
 
-  :deep(.el-button) {
-    min-width: 80px;
-    padding: 8px 16px;
-  }
+:deep(.el-menu-item:hover) {
+  background-color: #f5f7fa !important;
+}
 
-  :deep(.el-dialog__header) {
-    padding: 14px 20px;
-    margin: 0;
-    border-bottom: 1px solid #e4e7ed;
-    height: 52px;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-  }
+:deep(.el-icon) {
+  margin-right: 5px;
+}
 
-  :deep(.el-dialog__title) {
-    font-weight: 600;
-    font-size: 16px;
-    line-height: 24px;
-  }
+.add-item-dialog {
+  border-radius: 8px;
+}
 
-  :deep(.el-dialog__body) {
-    padding: 0;
-    margin: 0;
-  }
+.add-item-form {
+  padding: 20px 20px 0;
+}
 
-  :deep(.el-form-item) {
-    margin-bottom: 0;
-  }
+.form-item-header {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
 
-  :deep(.el-form-item__error) {
-    padding-top: 4px;
-  }
+.form-item-label {
+  font-size: 14px;
+  color: #606266;
+  font-weight: 500;
+}
 
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+.form-item-required {
+  color: #f56c6c;
+  font-size: 14px;
+  margin-left: 2px;
+}
 
-  .about-content {
-    padding: 20px;
-  }
+.dialog-footer {
+  display: inline-flex;
+  gap: 12px;
+}
 
-  .about-info {
-    margin-bottom: 16px;
-  }
+:deep(.el-dialog__footer) {
+  padding: 12px 20px;
+  margin-top: 20px;
+  border-top: 1px solid #e4e7ed;
+  text-align: right;
+}
 
-  .about-links {
-    margin-bottom: 16px;
-  }
+:deep(.el-input__wrapper) {
+  box-shadow: none;
+  border: 1px solid #dcdfe6;
+  transition: all 0.3s;
+}
 
-  .about-links a {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    color: var(--el-color-primary);
-    text-decoration: none;
-    padding: 4px 8px;
-    border-radius: 4px;
-    transition: all 0.3s;
-  }
+:deep(.el-input__wrapper:hover) {
+  border-color: #409eff;
+}
 
-  .about-links a:hover {
-    background-color: var(--el-color-primary-light-9);
-  }
+:deep(.el-input__wrapper.is-focus) {
+  border-color: #409eff;
+  box-shadow: 0 0 0 1px #409eff;
+}
 
-  .about-footer {
-    margin-top: 20px;
-    padding-top: 16px;
-    border-top: 1px solid var(--el-border-color-lighter);
-  }
-  </style>
+:deep(.el-button) {
+  min-width: 80px;
+  padding: 8px 16px;
+}
+
+:deep(.el-dialog__header) {
+  padding: 14px 20px;
+  margin: 0;
+  border-bottom: 1px solid #e4e7ed;
+  height: 52px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+}
+
+:deep(.el-dialog__title) {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+:deep(.el-dialog__body) {
+  padding: 0;
+  margin: 0;
+}
+
+:deep(.el-form-item) {
+  margin-bottom: 0;
+}
+
+:deep(.el-form-item__error) {
+  padding-top: 4px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.about-content {
+  padding: 20px;
+}
+
+.about-info {
+  margin-bottom: 16px;
+}
+
+.about-links {
+  margin-bottom: 16px;
+}
+
+.about-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--el-color-primary);
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.about-links a:hover {
+  background-color: var(--el-color-primary-light-9);
+}
+
+.about-footer {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--el-border-color-lighter);
+}
+
+.menu-item-with-delete {
+  position: relative;
+  padding-right: 40px !important;
+  /* 为删除图标留出空间 */
+}
+
+.delete-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  color: var(--el-text-color-regular);
+  cursor: pointer;
+}
+
+.menu-item-with-delete:hover .delete-icon {
+  opacity: 1;
+}
+
+.delete-icon:hover {
+  color: var(--el-color-danger);
+}
+
+:deep(.el-menu-item:hover) {
+  background-color: var(--el-menu-hover-bg-color) !important;
+}
+
+:deep(.el-menu-item.is-active) {
+  background-color: var(--el-menu-active-bg-color) !important;
+}
+</style>
