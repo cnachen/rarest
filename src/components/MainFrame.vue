@@ -7,17 +7,9 @@
           >v1.0.0, riscv64i</el-tag
         ></div>
 
-        <el-menu mode="horizontal" :ellipsis="false" @select="handleSelect">
-          <el-menu-item index="1">
-          <el-icon><House /></el-icon> 首页
-        </el-menu-item>
-        <el-menu-item index="2">
-          <el-icon><Watermelon /></el-icon> 关于
-        </el-menu-item>
-        <el-menu-item index="3">
-          <el-icon><Message /></el-icon> 联系
-        </el-menu-item>
-        </el-menu>
+          <div class="">
+
+          </div>
       </el-header>
       <el-container class="main-container">
 
@@ -36,14 +28,20 @@
             v-for="item in filteredMenuItems" 
             :key="item.index" 
             :index="item.index"
+            style="font-weight: 500; color: var(--el-text-color-regular)"
           >
             {{ item.label }}
           </el-menu-item>
         </el-menu>
         <div class="add-item-button">
-          <el-button type="primary" text @click="handleAddItem">
-            <el-icon><Plus /></el-icon>
-            添加新项目
+          <el-button 
+            type="primary" 
+            text 
+            @click="handleAddItem"
+            class="add-button"
+          >
+            <el-icon class="add-icon"><Plus /></el-icon>
+            <span class="add-text" style="font-weight: 500">添加新项目</span>
           </el-button>
         </div>
       </el-aside>
@@ -108,6 +106,13 @@
     { index: '1', label: '选项 1' },
     { index: '2', label: '选项 2' },
     { index: '3', label: '选项 3' },
+    { index: '4', label: '选项 4' },
+    { index: '5', label: '选项 5' },
+    { index: '6', label: '选项 6' },
+    { index: '7', label: '选项 7' },
+    { index: '8', label: '选项 8' },
+    { index: '9', label: '选项 9' },
+    { index: '10', label: '选项 10' },
   ]);
 
   const newItem = ref({
@@ -185,7 +190,7 @@
   }
 
   .header {
-    height: 60px;
+    height: 50px;
     display: flex;
     justify-content: space-between;
     align-items: center;

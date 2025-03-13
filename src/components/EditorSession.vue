@@ -47,7 +47,7 @@
       <div class="bottom-tabs" ref="bottomTabs">
         <el-tabs v-model="bottomActiveTab" class="bottom-content">
           <el-tab-pane label="控制台" name="table1">
-            <el-table :data="tableData1" border stripe>
+            <el-table :data="tableData1" border stripe highlight-current-row>
               <el-table-column prop="name" label="NAME" />
               <el-table-column prop="value" label="值" />
               <el-table-column prop="status" label="状态" />
@@ -55,7 +55,7 @@
             </el-table>
           </el-tab-pane>
           <el-tab-pane label="内存" name="table2">
-            <el-table :data="tableData2" border stripe>
+            <el-table :data="tableData2" border stripe highlight-current-row>
               <el-table-column prop="name" label="名称" />
               <el-table-column prop="value" label="值" />
             </el-table>
@@ -68,13 +68,13 @@
     <div class="right-column" ref="rightColumn" style="width: 300px">
       <el-tabs v-model="activeTab" class="session-tabs">
         <el-tab-pane label="寄存器" name="history">
-          <el-table :data="historyData" style="width: 100%" border stripe>
+          <el-table :data="historyData" style="width: 100%" border stripe highlight-current-row>
             <el-table-column prop="timestamp" label="时间" width="180" />
             <el-table-column prop="content" label="内容" />
           </el-table>
         </el-tab-pane>
         <el-tab-pane label="执行记录" name="execution">
-          <el-table :data="executionData" style="width: 100%" border stripe>
+          <el-table :data="executionData" style="width: 100%" border stripe highlight-current-row>
             <el-table-column prop="timestamp" label="时间" width="180" />
             <el-table-column prop="command" label="命令" />
           </el-table>
@@ -445,7 +445,6 @@ const executionData = ref([
 
 .bottom-tabs {
   height: 200px;
-  border-top: 1px solid var(--el-border-color-light);
   display: flex;
   flex-direction: column;
 }
@@ -501,6 +500,7 @@ const executionData = ref([
   height: 100%;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-family: var(--font-mono);
+  border-top: none !important;
 }
 
 :deep(.el-table__header),
