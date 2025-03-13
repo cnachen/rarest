@@ -90,7 +90,7 @@
 
           <!-- 右侧编辑器容器 -->
           <div class="editor-container" :style="{ width: (100 - leftWidth) + '%' }" style="margin-right: 5px;">
-            <vue-monaco-editor v-model:value="decompiledCode" theme="vs-light" :options="MONACO_EDITOR_OPTIONS"
+            <vue-monaco-editor v-model:value="decompiledCode" theme="vs-light" :options="MONACO_EDITOR_OPTIONS1"
               @mount="handleMount" class="right-editor" />
           </div>
         </div>
@@ -114,6 +114,9 @@
                 <el-table-column prop="byte2" label="字节2" />
                 <el-table-column prop="byte3" label="字节3" />
               </el-table>
+            </el-tab-pane>
+
+            <el-tab-pane label="监视" name="table3">
             </el-tab-pane>
           </el-tabs>
         </div>
@@ -210,6 +213,11 @@ const MONACO_EDITOR_OPTIONS = {
   overviewRulerBorder: false,
   overviewRulerLanes: 0,
   hideCursorInOverviewRuler: true,
+}
+
+const MONACO_EDITOR_OPTIONS1 = {
+  ...MONACO_EDITOR_OPTIONS,
+  readOnly: true
 }
 
 const sourceCode = ref(projectInner.value.getFile(selectedTabName.value).content)
