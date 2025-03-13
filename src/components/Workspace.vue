@@ -21,7 +21,7 @@
         <div class="toolbar">
           <!-- 添加标签页 -->
           <div class="tabs-container">
-            <el-tabs v-model="selectedTabName" type="card" class="editor-tabs" @tab-remove="handleFileDelete"
+            <el-tabs v-model="selectedTabName" class="editor-tabs" @tab-remove="handleFileDelete"
               @tab-click="handleFileSelected">
               <el-tab-pane v-for="item in projectInner.files" :key="item.name" :label="item.name" :name="item.name"
                 closable>
@@ -55,7 +55,7 @@
                 <PlayerPlay />
               </el-icon>
             </button>
-            <button @click="console.log('stop')" title="暂停"
+            <button @click="handleStopButton" title="暂停"
               style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
               <el-icon :size="20">
                 <PlayerStop />
@@ -67,7 +67,7 @@
                 <StepInto />
               </el-icon>
             </button>
-            <button @click="console.log('settings')" title="设置"
+            <button @click="handleSettingsButton" title="设置"
               style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
               <el-icon :size="20">
                 <Settings />
@@ -77,9 +77,9 @@
         </div>
 
         <!-- 编辑器区域 -->
-        <div class="editors-wrapper">
+        <div class="editors-wrapper" style="margin-top: 8px; margin-bottom: 8px;">
           <!-- 左侧编辑器容器 -->
-          <div class="editor-container" :style="{ width: leftWidth + '%' }">
+          <div class="editor-container" :style="{ width: leftWidth + '%' }" style="margin-right: 5px;">
             <vue-monaco-editor v-model:value="sourceCode" theme="vs-light" :options="MONACO_EDITOR_OPTIONS"
               :language="selectedTabName.toLowerCase().endsWith('.s') ? 'assembly' : 'c'" @mount="handleMount"
               class="left-editor" />
@@ -89,7 +89,7 @@
           <div class="editor-resizer" @mousedown="handleEditorResizerMouseDown"></div>
 
           <!-- 右侧编辑器容器 -->
-          <div class="editor-container" :style="{ width: (100 - leftWidth) + '%' }">
+          <div class="editor-container" :style="{ width: (100 - leftWidth) + '%' }" style="margin-right: 5px;">
             <vue-monaco-editor v-model:value="decompiledCode" theme="vs-light" :options="MONACO_EDITOR_OPTIONS"
               @mount="handleMount" class="right-editor" />
           </div>
@@ -99,7 +99,7 @@
         <div class="bottom-drag-handle"></div>
 
         <!-- 底部表格区域 -->
-        <div class="bottom-tabs" ref="bottomTabs">
+        <div class="bottom-tabs" ref="bottomTabs" style="border-top: 1px solid var(--el-border-color-light);">
           <el-tabs v-model="bottomActiveTab" class="bottom-content">
 
             <el-tab-pane label="控制台" name="table1" style="font-family: var(--font-mono);">
@@ -136,6 +136,7 @@
           </el-tab-pane>
         </el-tabs>
       </div>
+      <settings-dialog ref="settingsDialogRef" />
     </template>
   </div>
 </template>
@@ -148,6 +149,7 @@ import { ProjectInner } from '../models/project'
 import { UUIDVar } from '../models/uuidvar'
 import { VueMonacoEditor } from '@guolao/vue-monaco-editor'
 import Console from './Console.vue'
+import SettingsDialog from './SettingsDialog.vue'
 
 const props = defineProps({
   selectedIndex: {
@@ -171,14 +173,6 @@ const localVar = inject('localVar')
 const uuidVar = new UUIDVar(projectInner.value.uuid)
 
 const consoleRef = ref(null)
-
-// 添加日志
-const consoleAddLog = (content, type = 'info') => {
-  consoleRef.value?.addLog('这是一条信息', 'info')
-  consoleRef.value?.addLog('这是一条错误', 'error')
-  consoleRef.value?.addLog('这是一条警告', 'warning')
-  consoleRef.value?.addLog('这是一条成功信息', 'success')
-}
 
 const selectedTabName = ref(uuidVar.getVar(`selectedTabName`) || 'entry.S')
 
@@ -215,7 +209,7 @@ const MONACO_EDITOR_OPTIONS = {
   folding: false,
   overviewRulerBorder: false,
   overviewRulerLanes: 0,
-  hideCursorInOverviewRuler: true
+  hideCursorInOverviewRuler: true,
 }
 
 const sourceCode = ref(projectInner.value.getFile(selectedTabName.value).content)
@@ -273,7 +267,7 @@ const handleMouseMove = (e) => {
 
 const copyLink = async () => {
   await navigator.clipboard.writeText(`${location.origin}/readonly/${projectInner.value.uuid}`)
-  ElMessage.success('Sharable URL has been copied to clipboard.')
+  ElMessage.success('可分享链接已复制到剪贴板')
 }
 
 const handleMouseUp = () => {
@@ -465,14 +459,48 @@ const executionData = ref([
 const handleCompileButton = () => {
   console.log('compile')
   projectInner.value.updateFile(selectedTabName.value, sourceCode.value)
-  projectInner.value.decompiled = sourceCode.value
+  projectInner.value.updateDecompiled(sourceCode.value)
   decompiledCode.value = projectInner.value.decompiled
   ElMessage.success('编译成功')
 }
 
 const handleRunButton = () => {
   console.log('run')
-  consoleAddLog()
+  // Generate random logs
+  const messages = [
+    'Loading program into memory...',
+    'Initializing registers...',
+    'Program counter set to 0x00000000',
+    'Stack pointer initialized',
+    'Starting execution at entry point',
+    'Warning: Unaligned memory access detected',
+    'Error: Invalid instruction at 0x00004532',
+    'Successfully executed 1000 instructions',
+    'Memory allocation failed at address 0x10004000',
+    'Branch prediction accuracy: 95%'
+  ]
+  
+  const types = ['info', 'warning', 'error', 'success']
+  
+  // Add 3-5 random logs
+  const numLogs = Math.floor(Math.random() * 3) + 3
+  for(let i = 0; i < numLogs; i++) {
+    const msg = messages[Math.floor(Math.random() * messages.length)]
+    const type = types[Math.floor(Math.random() * types.length)]
+    consoleRef.value?.addLog(msg, type)
+  }
+}
+
+const handleStopButton = () => {
+  console.log('stop')
+  const consoleClear = () => {
+    consoleRef.value?.clear()
+  }
+  consoleClear()
+}
+
+const handleSettingsButton = () => {
+  showSettingsDialog()
 }
 
 const handleFileSelected = (tab) => {
@@ -533,6 +561,12 @@ const handleFileDelete = (targetName) => {
 
   projectInner.value.deleteFile(targetName)
 }
+
+const settingsDialogRef = ref(null)
+const showSettingsDialog = () => {
+  settingsDialogRef.value?.show()
+}
+
 </script>
 
 <style scoped>
@@ -694,7 +728,7 @@ const handleFileDelete = (targetName) => {
 .bottom-content {
   height: 100%;
   display: flex;
-  flex-direction: column;
+  flex-direction: column-reverse;
 }
 
 :deep(.el-tabs__content) {
@@ -723,7 +757,7 @@ const handleFileDelete = (targetName) => {
 
 .session-tabs {
   display: flex;
-  flex-direction: column;
+  flex-direction: column-reverse;
   height: 100%;
   border-left: 1px solid #e4e7ed;
 }

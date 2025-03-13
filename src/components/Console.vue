@@ -1,16 +1,12 @@
 <template>
   <div class="console-container">
-    <!-- 添加一个包装器用于滚动内容 -->
-    <div class="console-scroll-area">
-      <div class="console-output" ref="consoleOutput">
-        <div v-for="(log, index) in logs" :key="index" :class="['console-line', log.type]">
-          <span class="timestamp">{{ log.timestamp }}</span>
-          <span class="content" v-html="formatContent(log.content)"></span>
-        </div>
+    <div class="console-output" ref="consoleOutput">
+      <div v-for="(log, index) in logs" :key="index" :class="['console-line', log.type]">
+        <span class="timestamp" style="margin-top: 2px;">{{ log.timestamp }}</span>
+        <span class="content" v-html="formatContent(log.content)"></span>
       </div>
     </div>
-    <!-- 输入区域固定在底部 -->
-    <div class="console-input-fixed">
+    <!-- <div class="console-input">
       <span class="prompt">></span>
       <input 
         ref="inputRef"
@@ -21,7 +17,7 @@
         placeholder="输入命令..."
         spellcheck="false"
       />
-    </div>
+    </div> -->
   </div>
 </template>
 
@@ -43,7 +39,7 @@ const inputRef = ref(null)
 
 // 暴露方法给父组件
 const addLog = (content, type = 'info') => {
-  logs.value.push({
+  logs.value.unshift({
     timestamp: getCurrentTime(),
     content,
     type
@@ -52,7 +48,11 @@ const addLog = (content, type = 'info') => {
 }
 
 const clear = () => {
-  logs.value = []
+  logs.value = [{
+    timestamp: getCurrentTime(),
+    content: 'Console cleared.',
+    type: 'info'
+  }]
 }
 
 defineExpose({
@@ -80,17 +80,11 @@ function scrollToBottom() {
 function handleCommand() {
   if (!currentInput.value.trim()) return
 
-  // 添加命令到历史记录
   commandHistory.value.push(currentInput.value)
   historyIndex.value = commandHistory.value.length
 
-  // 显示命令
   addLog(`$ ${currentInput.value}`, 'command')
-
-  // 这里处理命令执行逻辑
   executeCommand(currentInput.value)
-
-  // 清空输入
   currentInput.value = ''
 }
 
@@ -132,40 +126,18 @@ onMounted(() => {
 <style scoped>
 .console-container {
   height: 100%;
-  background-color: #ffffff;
-  color: #000000;
+  background-color: #ffffff;  /* 改为白色背景 */
+  color: #000000;  /* 改为黑色文字 */
   font-family: 'Consolas', 'Monaco', monospace;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* 防止整个容器滚动 */
-}
-
-/* 新增滚动区域容器 */
-.console-scroll-area {
-  flex: 1;
   overflow: hidden;
-  position: relative;
 }
 
 .console-output {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  flex: 1;
   overflow-y: auto;
   padding: 8px;
-}
-
-/* 修改输入区域为固定定位 */
-.console-input-fixed {
-  flex-shrink: 0; /* 防止输入区域被压缩 */
-  display: flex;
-  align-items: center;
-  padding: 8px;
-  background-color: #f5f5f5;
-  border-top: 1px solid #e0e0e0;
-  width: 100%;
 }
 
 .console-line {
@@ -186,6 +158,14 @@ onMounted(() => {
   flex: 1;
   white-space: pre-wrap;
   word-break: break-all;
+}
+
+.console-input {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  background-color: #f5f5f5;  /* 浅灰色背景 */
+  border-top: 1px solid #e0e0e0;  /* 浅色边框 */
 }
 
 .prompt {

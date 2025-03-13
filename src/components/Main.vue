@@ -298,8 +298,8 @@ const showAboutDialog = () => {
 }
 
 :deep(.el-menu-item.is-active) {
-  background-color: #ecf5ff !important;
-  border-right: 2px solid #409EFF;
+  background-color: var(--el-color-primary-light-8) !important;
+  border-right: 2px solid var(--el-color-primary);
 }
 
 :deep(.el-menu-item span) {
@@ -449,10 +449,11 @@ const showAboutDialog = () => {
 }
 
 :deep(.el-menu-item:hover) {
-  background-color: var(--el-menu-hover-bg-color) !important;
+  background-color: var(--el-color-primary-light-9) !important;
 }
 
 :deep(.el-menu-item.is-active) {
-  background-color: var(--el-menu-active-bg-color) !important;
+  background-color: var(--el-color-primary-light-8) !important;
+  border-right: 2px solid var(--el-color-primary);
 }
 </style>

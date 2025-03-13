@@ -74,6 +74,11 @@ msg:
             this.store();
         }
     }
+
+    updateDecompiled(decompiled) {
+        this.decompiled = decompiled;
+        this.store();
+    }
 }
 
 export { Project, ProjectInner };
