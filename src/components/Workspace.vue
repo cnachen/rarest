@@ -247,17 +247,17 @@ function hexFormatter(len) {
   return (row, column, cellValue, index) => {
     return '0x' + cellValue.toString(16).padStart(len, '0');
   }
-  }
+}
 
-function  byteFormatter(byteIndex) {
-    return (row, column, cellValue) => {
-      // 根据 byteIndex 返回对应的字节
-      if (byteIndex === 0) return cellValue & 0xFF;              // byte0
-      if (byteIndex === 1) return (cellValue >> 8) & 0xFF;       // byte1
-      if (byteIndex === 2) return (cellValue >> 16) & 0xFF;      // byte2
-      if (byteIndex === 3) return (cellValue >> 24) & 0xFF;      // byte3
-    };
-  }
+function byteFormatter(byteIndex) {
+  return (row, column, cellValue) => {
+    // 根据 byteIndex 返回对应的字节
+    if (byteIndex === 0) return cellValue & 0xFF;              // byte0
+    if (byteIndex === 1) return (cellValue >> 8) & 0xFF;       // byte1
+    if (byteIndex === 2) return (cellValue >> 16) & 0xFF;      // byte2
+    if (byteIndex === 3) return (cellValue >> 24) & 0xFF;      // byte3
+  };
+}
 
 const activeTab = ref('history')
 const bottomActiveTab = ref('table1')
@@ -409,7 +409,7 @@ const tableData2 = ref([
   }
 ])
 
-import {compile, registers, memoryRange} from '../api/compiler'
+import { compile, registers, memoryRange } from '../api/compiler'
 
 const registerData = ref([])
 const memoryData = ref([])
@@ -439,9 +439,16 @@ const handleCompileButton = async () => {
     begin: 2147483648,
     end: 2147483690,
   });
-  projectInner.value.updateDecompiled(retstring)
-  decompiledCode.value = projectInner.value.decompiled
-  ElMessage.success('编译成功')
+
+  if (retstring.includes('Compilation failed')) {
+    ElMessage.error('编译失败')
+    consoleRef.value?.addLog('Target failed with error(s).', 'error')
+  } else {
+    projectInner.value.updateDecompiled(retstring)
+    decompiledCode.value = projectInner.value.decompiled
+    ElMessage.success('编译成功')
+    consoleRef.value?.addLog('Target compiled with no error.', 'info')
+  }
 }
 
 const handleRunButton = () => {
@@ -459,12 +466,12 @@ const handleRunButton = () => {
     'Memory allocation failed at address 0x10004000',
     'Branch prediction accuracy: 95%'
   ]
-  
+
   const types = ['info', 'warning', 'error', 'success']
-  
+
   // Add 3-5 random logs
   const numLogs = Math.floor(Math.random() * 3) + 3
-  for(let i = 0; i < numLogs; i++) {
+  for (let i = 0; i < numLogs; i++) {
     const msg = messages[Math.floor(Math.random() * messages.length)]
     const type = types[Math.floor(Math.random() * types.length)]
     consoleRef.value?.addLog(msg, type)
