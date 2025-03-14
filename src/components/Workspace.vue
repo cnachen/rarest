@@ -73,7 +73,7 @@
                 <PlayerStop />
               </el-icon>
             </button>
-            <button @click="console.log('step')" title="单步"
+            <button @click="handleStepButton" title="单步"
               style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
               <el-icon :size="20">
                 <StepInto />
@@ -409,7 +409,7 @@ const tableData2 = ref([
   }
 ])
 
-import { compile, registers, memoryRange } from '../api/compiler'
+import { compile, registers, memoryRange, postRun, postStep } from '../api/compiler'
 
 const registerData = ref([])
 const memoryData = ref([])
@@ -434,11 +434,6 @@ const handleCompileButton = async () => {
     name: 'entry.S',
     content: sourceCode.value,
   }])
-  registerData.value = await registers();
-  memoryData.value = await memoryRange({
-    begin: 2147483648,
-    end: 2147483690,
-  });
 
   if (retstring.includes('Compilation failed')) {
     ElMessage.error('编译失败')
@@ -451,7 +446,19 @@ const handleCompileButton = async () => {
   }
 }
 
-const handleRunButton = () => {
+const handleStepButton = async () => {
+  console.log('step');
+  const x = await postStep();
+  console.log(x)
+  consoleRef.value?.addLog(x[0], 'info');
+  registerData.value = await registers();
+  memoryData.value = await memoryRange({
+    begin: 2147483648,
+    end: 2147483690,
+  });
+}
+
+const handleRunButton = async () => {
   console.log('run')
   // Generate random logs
   const messages = [
@@ -470,12 +477,15 @@ const handleRunButton = () => {
   const types = ['info', 'warning', 'error', 'success']
 
   // Add 3-5 random logs
-  const numLogs = Math.floor(Math.random() * 3) + 3
-  for (let i = 0; i < numLogs; i++) {
-    const msg = messages[Math.floor(Math.random() * messages.length)]
-    const type = types[Math.floor(Math.random() * types.length)]
-    consoleRef.value?.addLog(msg, type)
-  }
+  // const numLogs = Math.floor(Math.random() * 3) + 3
+  // for (let i = 0; i < numLogs; i++) {
+  //   const msg = messages[Math.floor(Math.random() * messages.length)]
+  //   const type = types[Math.floor(Math.random() * types.length)]
+  //   consoleRef.value?.addLog(msg, type)
+  // }
+
+  const x = await postRun();
+  consoleRef.value?.addLog(x[0], 'info');
 }
 
 const handleStopButton = () => {

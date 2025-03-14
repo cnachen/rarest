@@ -68,4 +68,48 @@ const memoryRange = (range) => {
         });
 };
 
-export { compile, registers, memoryRange };
+const postRun = () => {
+    return fetch('http://127.0.0.1:3000/api/v1/core/run', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'  // 确保服务器返回 JSON
+        },
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! 状态码: ${response.status}`);
+            }
+            return response.json();  // ✅ 正确解析 JSON
+        })
+        .then(data => {
+            return data;
+        })
+        .catch(error => {
+            throw error;
+        });
+};
+
+const postStep = () => {
+    return fetch('http://127.0.0.1:3000/api/v1/core/step', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'  // 确保服务器返回 JSON
+        },
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! 状态码: ${response.status}`);
+            }
+            return response.json();  // ✅ 正确解析 JSON
+        })
+        .then(data => {
+            return data;
+        })
+        .catch(error => {
+            throw error;
+        });
+};
+
+export { compile, registers, memoryRange, postRun, postStep };
