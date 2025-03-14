@@ -409,7 +409,7 @@ const tableData2 = ref([
   }
 ])
 
-import { compile, registers, memoryRange, postRun, postStep } from '../api/compiler'
+import { compile, registers, memoryRange, postRun, postStep, postRestart, postStop } from '../api/compiler'
 
 const registerData = ref([])
 const memoryData = ref([])
@@ -458,6 +458,13 @@ const handleStepButton = async () => {
   });
 }
 
+const handleRestartButton = async () => {
+  console.log('restart');
+  const x = await postRestart();
+  console.log(x)
+  consoleRef.value?.addLog(x[0], 'info');
+}
+
 const handleRunButton = async () => {
   console.log('run')
   // Generate random logs
@@ -488,12 +495,16 @@ const handleRunButton = async () => {
   consoleRef.value?.addLog(x[0], 'info');
 }
 
-const handleStopButton = () => {
+const handleStopButton = async () => {
   console.log('stop')
   const consoleClear = () => {
     consoleRef.value?.clear()
   }
-  consoleClear()
+  // consoleClear()
+  console.log('restart');
+  const x = await postStop();
+  console.log(x)
+  consoleRef.value?.addLog(x[0], 'info');
 }
 
 const handleSettingsButton = () => {
