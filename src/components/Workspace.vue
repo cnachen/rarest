@@ -43,7 +43,19 @@
                 <Share />
               </el-icon>
             </button>
+            <button @click="handleActivityButton" title="统计"
+              style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
+              <el-icon :size="20">
+                <HeartRateMonitor />
+              </el-icon>
+            </button>
             <button @click="handleCompileButton" title="编译"
+              style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
+              <el-icon :size="20">
+                <Hammer />
+              </el-icon>
+            </button>
+            <button @click="handleRestartButton" title="重启"
               style="border: none; background: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; color: var(--el-text-color-regular)">
               <el-icon :size="20">
                 <Refresh />
@@ -81,7 +93,7 @@
           <!-- 左侧编辑器容器 -->
           <div class="editor-container" :style="{ width: leftWidth + '%' }" style="margin-right: 5px;">
             <vue-monaco-editor v-model:value="sourceCode" theme="vs-light" :options="MONACO_EDITOR_OPTIONS"
-              :language="selectedTabName.toLowerCase().endsWith('.s') ? 'assembly' : 'c'" @mount="handleMount"
+              :language="selectedTabName.toLowerCase().endsWith('.s') ? 'cpp' : 'c'" @mount="handleMount"
               class="left-editor" />
           </div>
 
@@ -146,7 +158,7 @@
 
 <script setup>
 import { ref, shallowRef, onMounted, onUnmounted, watch, inject } from 'vue'
-import { Refresh, PlayerPlay, Share, PlayerStop, StepInto, Plus, Settings } from '@vicons/tabler'
+import { Refresh, PlayerPlay, Share, PlayerStop, StepInto, Plus, Settings, Hammer, HeartRateMonitor } from '@vicons/tabler'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ProjectInner } from '../models/project'
 import { UUIDVar } from '../models/uuidvar'
@@ -464,10 +476,16 @@ const executionData = ref([
   }
 ])
 
-const handleCompileButton = () => {
+import {compile} from '../api/compiler'
+
+const handleCompileButton = async () => {
   console.log('compile')
   projectInner.value.updateFile(selectedTabName.value, sourceCode.value)
-  projectInner.value.updateDecompiled(sourceCode.value)
+  const retstring = await compile([{
+    name: 'entry.S',
+    content: sourceCode.value,
+  }])
+  projectInner.value.updateDecompiled(retstring)
   decompiledCode.value = projectInner.value.decompiled
   ElMessage.success('编译成功')
 }
@@ -527,8 +545,8 @@ const handleFileCreate = async () => {
           return '文件名不能为空'
         }
         // 验证文件后缀名
-        if (!value.endsWith('.c') && !value.toLowerCase().endsWith('.s')) {
-          return '文件名必须以 .c 或 .s/.S 结尾'
+        if (!value.endsWith('.c') && !value.endsWith('.h') && !value.toLowerCase().endsWith('.s')) {
+          return '文件名必须以 .c 或 .h 或 .s/.S 结尾'
         }
         // 检查文件名是否重复
         const isDuplicate = projectInner.value.files.some(tab => tab.name.toLowerCase() === value.toLowerCase())

@@ -11,7 +11,7 @@
 
           <el-option v-for="item in projectOptions" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
-        <span style="font-size: 13px; font-weight: 600; color: var(--el-text-color-regular)">版本:</span>
+        <span style="font-size: 13px; font-weight: 600; color: var(--el-text-color-regular)">频率:</span>
         <el-select v-model="selectedProject" placeholder="选择项目" size="small" style="width: 200px; margin-right: 16px;">
 
           <el-option v-for="item in projectOptions" :key="item.value" :label="item.label" :value="item.value" />
