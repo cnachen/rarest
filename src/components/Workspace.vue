@@ -120,11 +120,11 @@
             <el-tab-pane label="内存" name="table2">
               <el-table :data="memoryData" border stripe highlight-current-row>
                 <el-table-column prop="address" label="地址" />
-                <el-table-column prop="word" label="字" />
-                <el-table-column prop="byte0" label="字节0" />
-                <el-table-column prop="byte1" label="字节1" />
-                <el-table-column prop="byte2" label="字节2" />
-                <el-table-column prop="byte3" label="字节3" />
+                <el-table-column prop="word" label="字" :formatter="hexFormatter(8)" />
+                <el-table-column prop="word" label="字节0" :formatter="byteFormatter(0)" />
+                <el-table-column prop="word" label="字节1" :formatter="byteFormatter(1)" />
+                <el-table-column prop="word" label="字节2" :formatter="byteFormatter(2)" />
+                <el-table-column prop="word" label="字节3" :formatter="byteFormatter(3)" />
               </el-table>
             </el-tab-pane>
 
@@ -140,7 +140,7 @@
           <el-tab-pane label="寄存器" name="history">
             <el-table :data="registerData" style="width: 100%" border stripe highlight-current-row>
               <el-table-column prop="key" label="ABI名称" width="80" />
-              <el-table-column prop="value" label="值" />
+              <el-table-column prop="value" label="值" :formatter="hexFormatter(16)" />
             </el-table>
           </el-tab-pane>
           <el-tab-pane label="执行记录" name="execution">
@@ -159,7 +159,7 @@
 <script setup>
 import { ref, shallowRef, onMounted, onUnmounted, watch, inject } from 'vue'
 import { Refresh, PlayerPlay, Share, PlayerStop, StepInto, Plus, Settings, Hammer, HeartRateMonitor } from '@vicons/tabler'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox, formatter } from 'element-plus'
 import { ProjectInner } from '../models/project'
 import { UUIDVar } from '../models/uuidvar'
 import { VueMonacoEditor } from '@guolao/vue-monaco-editor'
@@ -242,6 +242,22 @@ const handleMount = editorInstance => (editor.value = editorInstance)
 function formatCode() {
   editor.value?.getAction('editor.action.formatDocument').run()
 }
+
+function hexFormatter(len) {
+  return (row, column, cellValue, index) => {
+    return '0x' + cellValue.toString(16).padStart(len, '0');
+  }
+  }
+
+function  byteFormatter(byteIndex) {
+    return (row, column, cellValue) => {
+      // 根据 byteIndex 返回对应的字节
+      if (byteIndex === 0) return cellValue & 0xFF;              // byte0
+      if (byteIndex === 1) return (cellValue >> 8) & 0xFF;       // byte1
+      if (byteIndex === 2) return (cellValue >> 16) & 0xFF;      // byte2
+      if (byteIndex === 3) return (cellValue >> 24) & 0xFF;      // byte3
+    };
+  }
 
 const activeTab = ref('history')
 const bottomActiveTab = ref('table1')
@@ -382,41 +398,6 @@ onUnmounted(() => {
 })
 
 // 模拟数据
-const memoryData = ref([
-  {
-    address: '0x0000000c',
-    word: '0x08070605',
-    byte0: '0x05',
-    byte1: '0x06',
-    byte2: '0x07',
-    byte3: '0x08',
-  },
-  {
-    address: '0x00000008',
-    word: '0x08070605',
-    byte0: '0x05',
-    byte1: '0x06',
-    byte2: '0x07',
-    byte3: '0x08',
-  },
-  {
-    address: '0x00000004',
-    word: '0x01020304',
-    byte0: '0x04',
-    byte1: '0x03',
-    byte2: '0x02',
-    byte3: '0x01',
-  },
-  {
-    address: '0x00000000',
-    word: '0x04030201',
-    byte0: '0x01',
-    byte1: '0x02',
-    byte2: '0x03',
-    byte3: '0x04',
-  },
-
-])
 const tableData2 = ref([
   {
     name: '项目A',
@@ -428,40 +409,10 @@ const tableData2 = ref([
   }
 ])
 
-const registerData = ref([
-  { key: 'zero', value: '0x00000000' },
-  { key: 'ra', value: '0x00000000' },
-  { key: 'sp', value: '0x00000000' },
-  { key: 'gp', value: '0x00000000' },
-  { key: 'tp', value: '0x00000000' },
-  { key: 't0', value: '0x00000000' },
-  { key: 't1', value: '0x00000000' },
-  { key: 't2', value: '0x00000000' },
-  { key: 's0', value: '0x00000000' },
-  { key: 's1', value: '0x00000000' },
-  { key: 'a0', value: '0x00000000' },
-  { key: 'a1', value: '0x00000000' },
-  { key: 'a2', value: '0x00000000' },
-  { key: 'a3', value: '0x00000000' },
-  { key: 'a4', value: '0x00000000' },
-  { key: 'a5', value: '0x00000000' },
-  { key: 'a6', value: '0x00000000' },
-  { key: 'a7', value: '0x00000000' },
-  { key: 's2', value: '0x00000000' },
-  { key: 's3', value: '0x00000000' },
-  { key: 's4', value: '0x00000000' },
-  { key: 's5', value: '0x00000000' },
-  { key: 's6', value: '0x00000000' },
-  { key: 's7', value: '0x00000000' },
-  { key: 's8', value: '0x00000000' },
-  { key: 's9', value: '0x00000000' },
-  { key: 's10', value: '0x00000000' },
-  { key: 's11', value: '0x00000000' },
-  { key: 't3', value: '0x00000000' },
-  { key: 't4', value: '0x00000000' },
-  { key: 't5', value: '0x00000000' },
-  { key: 't6', value: '0x00000000' }
-])
+import {compile, registers, memoryRange} from '../api/compiler'
+
+const registerData = ref([])
+const memoryData = ref([])
 
 const executionData = ref([
   {
@@ -476,8 +427,6 @@ const executionData = ref([
   }
 ])
 
-import {compile} from '../api/compiler'
-
 const handleCompileButton = async () => {
   console.log('compile')
   projectInner.value.updateFile(selectedTabName.value, sourceCode.value)
@@ -485,6 +434,11 @@ const handleCompileButton = async () => {
     name: 'entry.S',
     content: sourceCode.value,
   }])
+  registerData.value = await registers();
+  memoryData.value = await memoryRange({
+    begin: 2147483648,
+    end: 2147483690,
+  });
   projectInner.value.updateDecompiled(retstring)
   decompiledCode.value = projectInner.value.decompiled
   ElMessage.success('编译成功')
