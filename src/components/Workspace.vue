@@ -504,10 +504,7 @@ const handleActivityButton = () => {
 const handleCompileButton = async () => {
   console.log('compile')
   projectInner.value.updateFile(selectedTabName.value, sourceCode.value)
-  const retstring = await compile([{
-    name: 'entry.S',
-    content: sourceCode.value,
-  }])
+  const retstring = await compile(projectInner.value?.files)
 
   if (retstring.includes('Compilation failed')) {
     ElMessage.error('编译失败')

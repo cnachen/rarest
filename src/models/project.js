@@ -19,26 +19,20 @@ class ProjectInner {
         this.files = storedProjectInner ? JSON.parse(storedProjectInner).files : [new File('entry.S', `.global _entry
 .section .text
 _entry:
-	auipc t1, 0xab
-	li t1, 0xfff
-	addi t0, zero, 0
-	j 2f
+    mv s0, zero
+    mv t0, zero
+    mv t1, zero
+    li t2, 0xf
+    slli t2, t2, 0x3c
 1:
-	addi t0, t0, 1
-	j 1b
-2:
-	la t0, _entry
-	lw t1, 0(t0)
-	srli t0, t1, 12
-	addi t0, t0, 1
-	slli t0, t0, 12
-	li t2, 0xfff
-	and t1, t1, t2
-	or t0, t1, t0
-	la t1, _entry
-	sw t0, 0(t1)
-	addi t0, zero, 0
-	j _entry
+    beq s0, t2, 1f
+    sll s0, t0, t1
+    addi t0, t0, 1
+    addi t1, t1, 4
+
+    j 1b
+1:
+    j .
 
 .section .rodata
 msg:
