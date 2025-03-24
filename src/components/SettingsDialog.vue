@@ -123,7 +123,7 @@ defineExpose({
   show: () => {
     initSettings()
     dialogVisible.value = true
-  }
+  },
 })
 </script>
 

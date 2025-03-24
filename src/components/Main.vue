@@ -12,9 +12,9 @@
           <el-option v-for="item in projectOptions" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
         <span style="font-size: 13px; font-weight: 600; color: var(--el-text-color-regular)">频率:</span>
-        <el-select v-model="selectedProject" placeholder="选择项目" size="small" style="width: 200px; margin-right: 16px;">
+        <el-select v-model="selectedFrequency" @change="onSelectedFrequencyChange" placeholder="选择项目" size="small" style="width: 200px; margin-right: 16px;">
 
-          <el-option v-for="item in projectOptions" :key="item.value" :label="item.label" :value="item.value" />
+          <el-option v-for="item in frequencyOptions" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
         <a href="https://github.com/cnachen/rarest" target="_blank"
           style="display: flex; text-decoration: none; color: var(--el-text-color-regular)" title="GitHub">
@@ -197,6 +197,38 @@ const projectOptions = [
     label: '示例项目 5'
   }
 ]
+
+const selectedFrequency = ref(localVar.getVar('selectedFrequency') || '1')
+const frequencyOptions = [
+  {
+    value: '1',
+    label: '1 Hz'
+  },
+  {
+    value: '2',
+    label: '2 Hz'
+  },
+  {
+    value: '4',
+    label: '4 Hz'
+  },
+  {
+    value: '8',
+    label: '8 Hz'
+  },
+  {
+    value: '16',
+    label: '16 Hz'
+  },
+  {
+    value: '32',
+    label: '32 Hz'
+  }
+]
+
+const onSelectedFrequencyChange = (value) => {
+  localVar.setVar('selectedFrequency', value)
+}
 
 const aboutDialogRef = ref(null)
 const showAboutDialog = () => {

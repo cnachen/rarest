@@ -17,3 +17,4 @@ app.use(VueMonacoEditorPlugin, {
 app.use(ElementPlus)
 
 app.mount('#app')
+

@@ -83,3 +83,27 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+.red-line {
+  background-color: rgba(255, 0, 0, 0.3);
+}
+
+.yellow-line {
+  background-color: rgba(255, 255, 0, 0.5);
+}
+
+.arrow-decoration {
+  position: relative;
+  background: transparent;
+}
+
+.arrow-decoration:after {
+  content: '';
+  border-left: 2px solid blue; /* 绘制箭头的线段 */
+  position: absolute;
+  right: 0px;
+  top: 50%;
+  width: 0;
+  height: 100%;
+  transform: translateY(-50%);
+}

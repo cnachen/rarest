@@ -92,8 +92,8 @@
         <div class="editors-wrapper" style="margin-top: 8px; margin-bottom: 8px;">
           <!-- 左侧编辑器容器 -->
           <div class="editor-container" :style="{ width: leftWidth + '%' }" style="margin-right: 5px;">
-            <vue-monaco-editor v-model:value="sourceCode" theme="vs-light" :options="MONACO_EDITOR_OPTIONS"
-              :language="selectedTabName.toLowerCase().endsWith('.s') ? 'cpp' : 'c'" @mount="handleMount"
+            <vue-monaco-editor v-model:value="sourceCode" theme="vs" :options="MONACO_EDITOR_OPTIONS"
+              :language="selectedTabName.toLowerCase().endsWith('.s') ? 'cpp' : 'c'" @mount="handleMountLeft"
               class="left-editor" />
           </div>
 
@@ -102,8 +102,8 @@
 
           <!-- 右侧编辑器容器 -->
           <div class="editor-container" :style="{ width: (100 - leftWidth) + '%' }" style="margin-right: 5px;">
-            <vue-monaco-editor v-model:value="decompiledCode" theme="vs-light" :options="MONACO_EDITOR_OPTIONS1"
-              @mount="handleMount" class="right-editor" />
+            <vue-monaco-editor v-model:value="decompiledCode" theme="riscvTheme123" :options="MONACO_EDITOR_OPTIONS1"
+              language="riscv123" @mount="handleMountRight" class="right-editor" />
           </div>
         </div>
 
@@ -140,7 +140,7 @@
           <el-tab-pane label="寄存器" name="history">
             <el-table :data="registerData" style="width: 100%" border stripe highlight-current-row>
               <el-table-column prop="key" label="ABI名称" width="80" />
-              <el-table-column prop="value" label="值" :formatter="hexFormatter(16)" />
+              <el-table-column prop="value" label="值" />
             </el-table>
           </el-tab-pane>
           <el-tab-pane label="执行记录" name="execution">
@@ -165,6 +165,7 @@ import { UUIDVar } from '../models/uuidvar'
 import { VueMonacoEditor } from '@guolao/vue-monaco-editor'
 import Console from './Console.vue'
 import SettingsDialog from './SettingsDialog.vue'
+import * as monaco from 'monaco-editor'
 
 const props = defineProps({
   selectedIndex: {
@@ -182,6 +183,7 @@ watch(() => props.selectedIndex, (newIndex) => {
   sourceCode.value = projectInner.value.getFile(selectedTabName.value).content
   decompiledCode.value = projectInner.value.decompiled
 })
+
 
 const projectInner = ref(new ProjectInner(props.selectedIndex));
 const localVar = inject('localVar')
@@ -213,7 +215,7 @@ const MONACO_EDITOR_OPTIONS = {
     horizontalScrollbarSize: 8
   },
   hover: {
-    enabled: false
+    enabled: true
   },
   parameterHints: {
     enabled: false
@@ -229,23 +231,76 @@ const MONACO_EDITOR_OPTIONS = {
 
 const MONACO_EDITOR_OPTIONS1 = {
   ...MONACO_EDITOR_OPTIONS,
-  readOnly: true
+  readOnly: true,
+  glyphMargin: true,
+  theme: 'riscvTheme123'
 }
 
 const sourceCode = ref(projectInner.value.getFile(selectedTabName.value).content)
 const decompiledCode = ref(projectInner.value.decompiled)
 
-const editor = shallowRef()
-const handleMount = editorInstance => (editor.value = editorInstance)
+const editorLeft = shallowRef()
+const editorRight = shallowRef()
+const handleMountLeft = editorInstance => (editorLeft.value = editorInstance)
+const handleMountRight = editorInstance => {
+  editorRight.value = editorInstance;
+  if (decompiledCode.value != "") {
+    decorateLine(editorRight, 1, 'yellow-line')
+  }
+}
 
+let line = 1;
 // your action
 function formatCode() {
-  editor.value?.getAction('editor.action.formatDocument').run()
+  // editorLeft.value?.getAction('editor.action.formatDocument').run()
+  clearLineDecorations(editorRight, line - 1)
+  decorateLine(editorRight, line++, 'yellow-line')
+}
+
+function decorateLine(editorRef, line, className) {
+  editorRef.value?.deltaDecorations([], [{
+    options: {
+      isWholeLine: true,
+      className: className
+    },
+    range: new monaco.Range(line, 1, line, 100)
+  }])
+}
+
+function clearLineDecorations(editorRef, line) {
+  const model = editorRef.value?.getModel();
+  if (!model) return;
+
+  // 获取所有 decorations
+  const decorations = model.getAllDecorations();
+
+  // 过滤出目标行的 decoration IDs
+  const toRemove = decorations
+    .filter(dec =>
+      dec.range.startLineNumber <= line &&
+      dec.range.endLineNumber >= line
+    )
+    .map(dec => dec.id);
+
+  // 移除这些 decorations
+  if (toRemove.length > 0) {
+    editorRef.value.deltaDecorations(toRemove, []);
+  }
 }
 
 function hexFormatter(len) {
   return (row, column, cellValue, index) => {
-    return '0x' + cellValue.toString(16).padStart(len, '0');
+    let num = Number(cellValue);
+    if (isNaN(num)) return 'N/A'; // 非数字直接返回
+
+    // 如果是负数，按64位无符号处理（转为 BigInt 再加 2^64）
+    if (num < 0) {
+      const bigNum = BigInt(num) + (1n << 64n);
+      return '0x' + bigNum.toString(16).padStart(len, '0');
+    }
+
+    // 正数正常处理，考虑大数字直接转 BigInt 防止丢失精度
+    return '0x' + BigInt(num).toString(16).padStart(len, '0');
   }
 }
 
@@ -427,6 +482,25 @@ const executionData = ref([
   }
 ])
 
+const stepData = ref()
+let currentLine = 1
+
+const handleActivityButton = () => {
+  consoleRef.value?.addLog('Activity button clicked', 'info')
+  function addArrowDecoration() {
+    const decoration = {
+      range: new monaco.Range(5, 1, 10, 1), // 从第五行到第十行
+      options: {
+        isWholeLine: true,
+        className: 'arrow-decoration', // 自定义类名，用于显示箭头
+      },
+    };
+
+    editorRight.value?.deltaDecorations([], [decoration]); // 使用 deltaDecorations 方法应用装饰
+  }
+  addArrowDecoration();
+}
+
 const handleCompileButton = async () => {
   console.log('compile')
   projectInner.value.updateFile(selectedTabName.value, sourceCode.value)
@@ -450,20 +524,28 @@ const handleStepButton = async () => {
   console.log('step');
   const x = await postStep();
   console.log(x)
-  consoleRef.value?.addLog(x[0], 'info');
+  stepData.value = x;
+  clearLineDecorations(editorRight, currentLine)
+  currentLine = x.pc / 4 + 1
+  decorateLine(editorRight, currentLine, 'yellow-line')
+  consoleRef.value?.addLog(x.message, 'info');
   registerData.value = await registers();
   memoryData.value = await memoryRange({
-    begin: 2147483648,
-    end: 2147483690,
+    begin: 0,
+    end: 0x1c,
   });
 }
 
 const handleRestartButton = async () => {
   console.log('restart');
+  clearInterval(timer);
   const x = await postRestart();
   console.log(x)
+  ElMessage.success('重启成功')
   consoleRef.value?.addLog(x[0], 'info');
 }
+
+let timer = null;
 
 const handleRunButton = async () => {
   console.log('run')
@@ -492,7 +574,15 @@ const handleRunButton = async () => {
   // }
 
   const x = await postRun();
-  consoleRef.value?.addLog(x[0], 'info');
+  console.log(x)
+  if (x[0].includes('already')) {
+    ElMessage.warning('已在运行')
+    consoleRef.value?.addLog(x[0], 'warning');
+  } else {
+    timer = setInterval(handleStepButton, 1000 / +localVar.getVar('selectedFrequency') || 1000)
+    ElMessage.success('开始运行')
+    consoleRef.value?.addLog(x[0], 'info');
+  }
 }
 
 const handleStopButton = async () => {
@@ -500,10 +590,12 @@ const handleStopButton = async () => {
   const consoleClear = () => {
     consoleRef.value?.clear()
   }
-  // consoleClear()
-  console.log('restart');
+
+  clearInterval(timer)
+
   const x = await postStop();
   console.log(x)
+  ElMessage.success('已暂停')
   consoleRef.value?.addLog(x[0], 'info');
 }
 
