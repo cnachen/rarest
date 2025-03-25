@@ -182,6 +182,19 @@ watch(() => props.selectedIndex, (newIndex) => {
   selectedTabName.value = uuidVar.getVar(`selectedTabName`) || 'entry.S'
   sourceCode.value = projectInner.value.getFile(selectedTabName.value).content
   decompiledCode.value = projectInner.value.decompiled
+  clearInterval(timer);
+  let breakpointsArray = uuidVar.getVar('breakpoints');
+  breakpointsArray = breakpointsArray ? JSON.parse(breakpointsArray) : []
+  breakpoints.forEach((line) => {
+    removeBreakpoint(line)
+  })
+  breakpoints = new Set(breakpointsArray)
+  breakpoints.forEach((line) => {
+    addBreakpoint(line)
+  })
+  clearLineDecorations(editorRight, currentLine);
+  currentLine = 1;
+  decorateLine(editorRight, currentLine, 'yellow-line');
 })
 
 
