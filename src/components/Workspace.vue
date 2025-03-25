@@ -205,6 +205,7 @@ const MONACO_EDITOR_OPTIONS = {
   },
   scrollBeyondLastLine: false,
   fontSize: 14,
+  fontFamily: 'monospace',
   lineNumbers: 'on',
   roundedSelection: false,
   scrollbar: {

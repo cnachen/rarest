@@ -12,7 +12,8 @@
           <el-option v-for="item in projectOptions" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
         <span style="font-size: 13px; font-weight: 600; color: var(--el-text-color-regular)">频率:</span>
-        <el-select v-model="selectedFrequency" @change="onSelectedFrequencyChange" placeholder="选择项目" size="small" style="width: 200px; margin-right: 16px;">
+        <el-select v-model="selectedFrequency" @change="onSelectedFrequencyChange" placeholder="选择项目" size="small"
+          style="width: 200px; margin-right: 16px;">
 
           <el-option v-for="item in frequencyOptions" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
@@ -70,17 +71,19 @@
 
     <!-- 关于软件的对话框 -->
     <about-dialog ref="aboutDialogRef" />
+    <create-project-dialog ref="createProjectDialogRef" />
   </el-container>
 </template>
 
 <script setup>
-import { ref, computed, inject } from "vue";
-import { ElMessageBox } from 'element-plus'
+import { ref, computed, inject, h } from "vue";
+import { ElMessageBox, ElInput, ElSelect, ElOption } from 'element-plus'
 import Workspace from './Workspace.vue'
 import AboutDialog from './AboutDialog.vue'
 import { Plus, Search, BrandGithub, QuestionMark, TrashX, Pencil } from "@vicons/tabler";
 import param from "@/models/param";
 import Session from '../models/session'
+import CreateProjectDialog from "./CreateProjectDialog.vue";
 
 const localVar = inject('localVar');
 
@@ -151,7 +154,7 @@ const handleProjectSearch = () => {
   console.log('Searching for:', searchQuery.value);
 }
 
-const handleProjectCreate = async () => {
+const handleProjectCreate1 = async () => {
   try {
     const name = await ElMessageBox.prompt(
       `请输入新的项目名称（最多20个字符）：`,
@@ -171,6 +174,21 @@ const handleProjectCreate = async () => {
   } catch {
     // 用户取消创建
   }
+}
+
+const createProjectDialogRef = ref(null);
+const handleProjectCreate = async () => {
+  createProjectDialogRef.value.show().then(({ name, template }) => {
+    console.log('项目名:', name)
+    console.log('模板:', template)
+    // 执行你的创建逻辑
+    if (name) {
+      selectedMenuItem.value = session.value.createProject(name)
+      localVar.setVar('selectedMenuItem', selectedMenuItem.value)
+    }
+  }).catch(() => {
+    console.log('用户取消了创建')
+  })
 }
 
 // 添加选择项目的数据
@@ -487,5 +505,9 @@ const showAboutDialog = () => {
 :deep(.el-menu-item.is-active) {
   background-color: var(--el-color-primary-light-8) !important;
   border-right: 2px solid var(--el-color-primary);
+}
+
+.full-width-messagebox .el-message-box__message {
+  width: 100% !important;
 }
 </style>
