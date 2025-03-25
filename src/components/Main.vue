@@ -2,7 +2,7 @@
   <el-container class="layout">
     <el-header class="header">
       <div class="logo">{{ param.softwareInfo.name }}
-        <el-tag size="small">v{{ param.softwareInfo.version }}, riscv64i</el-tag>
+        <el-tag size="small">v{{ param.softwareInfo.version }}, riscv64im</el-tag>
       </div>
 
       <div class="header-right">

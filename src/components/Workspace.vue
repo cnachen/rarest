@@ -93,7 +93,7 @@
           <!-- 左侧编辑器容器 -->
           <div class="editor-container" :style="{ width: leftWidth + '%' }" style="margin-right: 5px;">
             <vue-monaco-editor v-model:value="sourceCode" theme="vs" :options="MONACO_EDITOR_OPTIONS"
-              :language="selectedTabName.toLowerCase().endsWith('.s') ? 'cpp' : 'c'" @mount="handleMountLeft"
+              :language="selectedTabName.toLowerCase().endsWith('.s') ? 'riscv123' : 'c'" @mount="handleMountLeft"
               class="left-editor" />
           </div>
 
@@ -538,6 +538,9 @@ const handleRestartButton = async () => {
   clearInterval(timer);
   const x = await postRestart();
   console.log(x)
+  clearLineDecorations(editorRight, currentLine);
+  currentLine = 1;
+  decorateLine(editorRight, currentLine, 'yellow-line');
   ElMessage.success('重启成功')
   consoleRef.value?.addLog(x[0], 'info');
 }

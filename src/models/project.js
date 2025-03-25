@@ -19,24 +19,24 @@ class ProjectInner {
         this.files = storedProjectInner ? JSON.parse(storedProjectInner).files : [new File('entry.S', `.global _entry
 .section .text
 _entry:
-    mv s0, zero
-    mv t0, zero
-    mv t1, zero
-    li t2, 0xf
-    slli t2, t2, 0x3c
+    mv s0, zero        # s0 = zero
+    mv t0, zero        # t0 = zero
+    mv t1, zero        # t1 = zero
+    li t2, 0xf         # t2 = 0xf
+    slli t2, t2, 0x3c  # t2 = t2 << 60
 1:
-    beq s0, t2, 1f
-    sll s0, t0, t1
-    addi t0, t0, 1
-    addi t1, t1, 4
-
-    j 1b
+    beq s0, t2, 1f     # if (s0 == t2) goto 1f
+    sll s0, t0, t1     # s0 = t0 << t1
+    addi t0, t0, 1     # t0 = t0 + 1
+    addi t1, t1, 4     # t1 = t1 + 4
+    j 1b               # goto 1b
 1:
-    j .
+    j .                # goto .
 
 .section .rodata
 msg:
-	.ascii "Hello, World!\\n"`)];
+	.ascii "Hello, World!\\n"
+`)];
         this.config = storedProjectInner ? JSON.parse(storedProjectInner).config : {};
         this.items = storedProjectInner ? JSON.parse(storedProjectInner).items : [];
         this.decompiled = storedProjectInner ? JSON.parse(storedProjectInner).decompiled : '';
