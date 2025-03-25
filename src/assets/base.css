@@ -107,3 +107,13 @@ body {
   height: 100%;
   transform: translateY(-50%);
 }
+
+.breakpoint {
+  background-color: red !important; /* 红色背景表示断点 */
+  top: 4px !important;
+  left: 18px !important;
+  width: 10px !important;
+  height: 10px !important;
+  background: red !important;
+  border-radius: 50%;
+}

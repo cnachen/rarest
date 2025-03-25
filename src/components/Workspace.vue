@@ -237,6 +237,49 @@ const MONACO_EDITOR_OPTIONS1 = {
   theme: 'riscvTheme123'
 }
 
+let breakpoints = new Set();
+
+function addBreakpoint(lineNumber) {
+  breakpoints.add(lineNumber);
+  uuidVar.setVar('breakpoints', JSON.stringify(Array.from(breakpoints)))
+  console.log(lineNumber, 'bpadd')
+
+  // 使用装饰（decorations）标记断点
+  editorRight.value?.deltaDecorations([], [{
+    range: new monaco.Range(lineNumber, 1, lineNumber, 1), // 断点的位置
+    options: {
+      isWholeLine: true,
+      marginClassName: 'breakpoint', // 用于样式标记断点
+      stickness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+    }
+  }]);
+}
+
+// 移除断点
+function removeBreakpoint(lineNumber) {
+  // 从断点集合中删除该行断点
+  breakpoints.delete(lineNumber);
+  uuidVar.setVar('breakpoints', JSON.stringify(Array.from(breakpoints)))
+  console.log(lineNumber, 'bpdel');
+
+  // 获取该行的装饰
+  const lineDecos = editorRight.value?.getLineDecorations(lineNumber);
+  let flagId = "";
+  console.log(lineDecos);
+
+  // 查找并获取对应断点的装饰 ID
+  lineDecos?.forEach((deco) => {
+    if (deco.options.marginClassName === 'breakpoint') {
+      flagId = deco.id; // 找到对应的断点装饰 ID
+    }
+  });
+
+  // 如果找到了对应的断点装饰 ID，则移除它
+  if (flagId) {
+    editorRight.value?.deltaDecorations([flagId], []); // 移除断点装饰
+  }
+}
+
 const sourceCode = ref(projectInner.value.getFile(selectedTabName.value).content)
 const decompiledCode = ref(projectInner.value.decompiled)
 
@@ -248,6 +291,27 @@ const handleMountRight = editorInstance => {
   if (decompiledCode.value != "") {
     decorateLine(editorRight, 1, 'yellow-line')
   }
+
+  let breakpointsArray = uuidVar.getVar('breakpoints');
+  breakpointsArray = breakpointsArray ? JSON.parse(breakpointsArray) : []
+  breakpoints = new Set(breakpointsArray)
+  breakpoints.forEach((line) => {
+    addBreakpoint(line)
+  })
+
+  editorRight.value?.onMouseDown((e) => {
+    const position = editorRight.value?.getPosition();
+    if (position) {
+      const lineNumber = position.lineNumber;
+
+      // 如果断点已存在，移除断点；否则，添加断点
+      if (breakpoints.has(lineNumber)) {
+        removeBreakpoint(lineNumber);
+      } else {
+        addBreakpoint(lineNumber);
+      }
+    }
+  });
 }
 
 let line = 1;
@@ -279,7 +343,8 @@ function clearLineDecorations(editorRef, line) {
   const toRemove = decorations
     .filter(dec =>
       dec.range.startLineNumber <= line &&
-      dec.range.endLineNumber >= line
+      dec.range.endLineNumber >= line &&
+      dec.options.className === 'yellow-line'
     )
     .map(dec => dec.id);
 
@@ -518,6 +583,8 @@ const handleCompileButton = async () => {
   }
 }
 
+let timer = null;
+
 const handleStepButton = async () => {
   console.log('step');
   const x = await postStep();
@@ -532,6 +599,10 @@ const handleStepButton = async () => {
     begin: 0,
     end: 0x1c,
   });
+
+  if (breakpoints.has(currentLine)) {
+    clearInterval(timer);
+  }
 }
 
 const handleRestartButton = async () => {
@@ -546,7 +617,6 @@ const handleRestartButton = async () => {
   consoleRef.value?.addLog(x[0], 'info');
 }
 
-let timer = null;
 
 const handleRunButton = async () => {
   console.log('run')

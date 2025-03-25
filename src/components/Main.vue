@@ -183,7 +183,7 @@ const handleProjectCreate = async () => {
     console.log('模板:', template)
     // 执行你的创建逻辑
     if (name) {
-      selectedMenuItem.value = session.value.createProject(name)
+      selectedMenuItem.value = session.value.createProject(name, template)
       localVar.setVar('selectedMenuItem', selectedMenuItem.value)
     }
   }).catch(() => {

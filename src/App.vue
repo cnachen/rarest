@@ -20,7 +20,7 @@ const registerRiscvSH = async () => {
         [/0x[0-9a-fA-F]+/, 'riscv.literal.hex'],
         [/^[0-9a-fA-F]{12}:/, 'riscv.view.address'],
         [/\[[IURSJB]\]/, 'riscv.instruction.type'],
-        [/\b(nop|li|la|mv|not|neg|negw|sext.w|seqz|snez|sltz|sgtz|beqz|bnez|blez|bgez|bltz|bgtz|bgt|ble|bgtu|bleu|j|jr|ret|lui|auipc|jal|jalr|beq|bne|blt|bge|bltu|bgeu|lb|lh|lw|ld|lbu|lhu|lwu|sb|sh|sw|sd|addi|slti|sltiu|xori|ori|andi|slli|srli|srai|add|sub|sll|slt|sltu|xor|srl|sra|or|and|addiw|addw|mul|mulhu|div|divu|rem|remu|mulw|divw|divuw|remw|remuw)\b/, 'riscv.literal.mnemonic'],  // 指令
+        [/\b(call|nop|li|la|mv|not|neg|negw|sext.w|seqz|snez|sltz|sgtz|beqz|bnez|blez|bgez|bltz|bgtz|bgt|ble|bgtu|bleu|j|jr|ret|lui|auipc|jal|jalr|beq|bne|blt|bge|bltu|bgeu|lb|lh|lw|ld|lbu|lhu|lwu|sb|sh|sw|sd|addi|slti|sltiu|xori|ori|andi|slli|srli|srai|add|sub|sll|slt|sltu|xor|srl|sra|or|and|addiw|addw|mul|mulhu|div|divu|rem|remu|mulw|divw|divuw|remw|remuw)\b/, 'riscv.literal.mnemonic'],  // 指令
         [/\b(zero|[atvs][0-9]|t[0-6]|s[0-9]|a[0-7]|ra|sp|gp|tp|fp)\b/, 'riscv.literal.register'],
         [/[.](bss|rodata|data|text)([.]\w+)?/, 'riscv.section'],
         [/^[_a-zA-Z][._a-zA-Z0-9]+:/, 'riscv.label.general'],

@@ -1,22 +1,66 @@
-import File from './file';
+import File from "./file";
+import { UUIDVar } from "./uuidvar";
 
 class Project {
-    constructor(name, uuid) {
-        this.name = name;
-        this.uuid = uuid;
-    }
+  constructor(name, uuid, template = "default") {
+    this.name = name;
+    this.uuid = uuid;
+    this.template = template;
+
+    const uuidVar = new UUIDVar(uuid);
+    uuidVar.setVar("template", template);
+  }
 }
 
 class ProjectInner {
-    constructor(uuid) {
-        this.uuid = uuid;
-        this.load();
-        this.store();
-    }
+  constructor(uuid) {
+    this.uuid = uuid;
+    this.load();
+    this.store();
+  }
 
-    load() {
-        const storedProjectInner = localStorage.getItem(`projectInner_${this.uuid}`);
-        this.files = storedProjectInner ? JSON.parse(storedProjectInner).files : [new File('entry.S', `.global _entry
+  load() {
+    const uuidVar = new UUIDVar(this.uuid);
+    const template = uuidVar.getVar("template");
+
+    const storedProjectInner = localStorage.getItem(
+      `projectInner_${this.uuid}`
+    );
+    if (template === "fib") {
+      this.files = storedProjectInner
+        ? JSON.parse(storedProjectInner).files
+        : [
+            new File(
+              "entry.S",
+              `.global _entry
+.section .text
+_entry:
+    li a0, 5
+    call fib
+    j .                # goto .
+
+.section .rodata
+msg:
+	.ascii "Hello, World!\\n"
+`
+            ),
+            new File(
+              "fib.c",
+              `int fib(int n)
+{
+    if (n <= 1) return 1;
+    return fib(n - 1) + fib(n - 2);
+}
+`
+            ),
+          ];
+    } else {
+      this.files = storedProjectInner
+        ? JSON.parse(storedProjectInner).files
+        : [
+            new File(
+              "entry.S",
+              `.global _entry
 .section .text
 _entry:
     mv s0, zero        # s0 = zero
@@ -36,43 +80,50 @@ _entry:
 .section .rodata
 msg:
 	.ascii "Hello, World!\\n"
-`)];
-        this.config = storedProjectInner ? JSON.parse(storedProjectInner).config : {};
-        this.items = storedProjectInner ? JSON.parse(storedProjectInner).items : [];
-        this.decompiled = storedProjectInner ? JSON.parse(storedProjectInner).decompiled : '';
+`
+            ),
+          ];
     }
+    this.config = storedProjectInner
+      ? JSON.parse(storedProjectInner).config
+      : {};
+    this.items = storedProjectInner ? JSON.parse(storedProjectInner).items : [];
+    this.decompiled = storedProjectInner
+      ? JSON.parse(storedProjectInner).decompiled
+      : "";
+  }
 
-    store() {
-        localStorage.setItem(`projectInner_${this.uuid}`, JSON.stringify(this));
-    }
+  store() {
+    localStorage.setItem(`projectInner_${this.uuid}`, JSON.stringify(this));
+  }
 
-    createFile(name, content = '') {
-        const file = new File(name, content);
-        this.files.push(file);
-        this.store();
-    }
+  createFile(name, content = "") {
+    const file = new File(name, content);
+    this.files.push(file);
+    this.store();
+  }
 
-    deleteFile(name) {
-        this.files = this.files.filter(file => file.name !== name);
-        this.store();
-    }
+  deleteFile(name) {
+    this.files = this.files.filter((file) => file.name !== name);
+    this.store();
+  }
 
-    getFile(name) {
-        return this.files.find(file => file.name === name);
-    }
+  getFile(name) {
+    return this.files.find((file) => file.name === name);
+  }
 
-    updateFile(name, content) {
-        const file = this.getFile(name);
-        if (file) {
-            file.content = content;
-            this.store();
-        }
+  updateFile(name, content) {
+    const file = this.getFile(name);
+    if (file) {
+      file.content = content;
+      this.store();
     }
+  }
 
-    updateDecompiled(decompiled) {
-        this.decompiled = decompiled;
-        this.store();
-    }
+  updateDecompiled(decompiled) {
+    this.decompiled = decompiled;
+    this.store();
+  }
 }
 
 export { Project, ProjectInner };
