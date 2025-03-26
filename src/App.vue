@@ -34,6 +34,48 @@ const registerRiscvSH = async () => {
     },
   })
 
+  const keywords = `call|nop|li|la|mv|not|neg|negw|sext.w|seqz|snez|sltz|sgtz|beqz|bnez|blez|bgez|bltz|bgtz|bgt|ble|bgtu|bleu|j|jr|ret|lui|auipc|jal|jalr|beq|bne|blt|bge|bltu|bgeu|lb|lh|lw|ld|lbu|lhu|lwu|sb|sh|sw|sd|addi|slti|sltiu|xori|ori|andi|slli|srli|srai|add|sub|sll|slt|sltu|xor|srl|sra|or|and|addiw|addw|mul|mulhu|div|divu|rem|remu|mulw|divw|divuw|remw|remuw`.split('|');
+  const registers = `zero|a0|a1|a2|a3|a4|a5|a6|a7|t0|t1|t2|t3|t4|t5|t6|s0|s1|s2|s3|s4|s5|s6|s7|s8|s9|ra|sp|gp|tp|fp`.split('|');
+  const directives = `local|global|section|bss|rodata|data|text`.split('|');
+
+  // 注册补全
+  monaco.languages.registerCompletionItemProvider('riscv123', {
+    provideCompletionItems: function (model, position) {
+      const lineContent = model.getLineContent(position.lineNumber);
+      const suggestions = [];
+      console.log(lineContent);
+
+      // 第一部分：如果输入的是指令关键字
+      if (lineContent.trim() === '') {  // 只检测以字母开头的行（指令关键字）
+        suggestions.push(...keywords.map(keyword => ({
+          label: keyword,
+          kind: monaco.languages.CompletionItemKind.Keyword,
+          insertText: keyword,
+          documentation: `RISC-V Instruction: ${keyword}`
+        })));
+      }
+      else if (/^[.]/.test(lineContent)) {
+        suggestions.push(...directives.map(directive=> ({
+          label: directive,
+          kind: monaco.languages.CompletionItemKind.Keyword,
+          insertText: directive,
+          documentation: `RISC-V directive: ${directive}`
+        })));
+      }
+      // 第二部分：如果输入的是寄存器名（寄存器补全）
+      else {
+        suggestions.push(...registers.map(register => ({
+          label: register,
+          kind: monaco.languages.CompletionItemKind.Variable,
+          insertText: register,
+          documentation: `RISC-V Register: ${register}`
+        })));
+      } 
+
+      return { suggestions };
+    }
+  });
+
   // 悬浮提示
   monacoRef.value?.languages.registerHoverProvider('riscv123', {
     provideHover(model, position, token) {

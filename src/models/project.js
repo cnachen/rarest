@@ -26,7 +26,32 @@ class ProjectInner {
     const storedProjectInner = localStorage.getItem(
       `projectInner_${this.uuid}`
     );
-    if (template === "fib") {
+    if (template === "fact") {
+      this.files = storedProjectInner
+        ? JSON.parse(storedProjectInner).files
+        : [
+            new File(
+              "entry.S",
+              `.global _entry
+.section .text
+
+_entry:
+    li   t0, 5        # t0 = 5 (n)
+    li   t1, 1        # t1 = 1 (result)
+
+factorial_loop:
+    beqz t0, done     # if t0 == 0, jump to done
+    mul  t1, t1, t0   # t1 = t1 * t0
+    addi t0, t0, -1   # t0 = t0 - 1
+    j factorial_loop
+
+done:
+    j .
+`
+            ),
+          ];
+    }
+    else if (template === "fib") {
       this.files = storedProjectInner
         ? JSON.parse(storedProjectInner).files
         : [

@@ -16,6 +16,7 @@
           <el-select v-model="form.template" placeholder="请选择模板" style="width: 100%;">
             <el-option label="默认" value="default" />
             <el-option label="斐波那契数列" value="fib" />
+            <el-option label="阶乘" value="fact" />
             <el-option label="冒泡排序" value="bubble_sort" />
             <el-option label="最大公约数" value="gcd" />
           </el-select>

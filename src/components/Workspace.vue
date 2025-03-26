@@ -118,17 +118,15 @@
               <Console ref="consoleRef" />
             </el-tab-pane>
             <el-tab-pane label="内存" name="table2">
+              <Memory-range-adder @updateMemoryRange="handleMemoryRangeUpdate" />
               <el-table :data="memoryData" border stripe highlight-current-row>
-                <el-table-column prop="address" label="地址" />
+                <el-table-column prop="address" label="地址" :formatter="hexFormatter(12)" />
                 <el-table-column prop="word" label="字" :formatter="hexFormatter(8)" />
                 <el-table-column prop="word" label="字节0" :formatter="byteFormatter(0)" />
                 <el-table-column prop="word" label="字节1" :formatter="byteFormatter(1)" />
                 <el-table-column prop="word" label="字节2" :formatter="byteFormatter(2)" />
                 <el-table-column prop="word" label="字节3" :formatter="byteFormatter(3)" />
               </el-table>
-            </el-tab-pane>
-
-            <el-tab-pane label="监视" name="table3">
             </el-tab-pane>
           </el-tabs>
         </div>
@@ -165,6 +163,7 @@ import { UUIDVar } from '../models/uuidvar'
 import { VueMonacoEditor } from '@guolao/vue-monaco-editor'
 import Console from './Console.vue'
 import SettingsDialog from './SettingsDialog.vue'
+import MemoryRangeAdder from './MemoryRangeAdder.vue'
 import * as monaco from 'monaco-editor'
 
 const props = defineProps({
@@ -293,12 +292,19 @@ function removeBreakpoint(lineNumber) {
   }
 }
 
+
 const sourceCode = ref(projectInner.value.getFile(selectedTabName.value).content)
 const decompiledCode = ref(projectInner.value.decompiled)
 
 const editorLeft = shallowRef()
 const editorRight = shallowRef()
-const handleMountLeft = editorInstance => (editorLeft.value = editorInstance)
+const handleMountLeft = editorInstance => {
+  editorLeft.value = editorInstance;
+
+  editorLeft.value?.onDidChangeModelContent(() => {
+    editorLeft.value?.trigger('keyboard', 'editor.action.triggerSuggest', {});
+  });
+}
 const handleMountRight = editorInstance => {
   editorRight.value = editorInstance;
   if (decompiledCode.value != "") {
@@ -598,6 +604,19 @@ const handleCompileButton = async () => {
 
 let timer = null;
 
+let memoryBegin = 0;
+let memoryEnd = 0x1c;
+
+const handleMemoryRangeUpdate = async (payload) => {
+    const { value1, value2 } = payload;
+    memoryBegin = value1;
+    memoryEnd = value2;
+    memoryData.value = await memoryRange({
+    begin: memoryBegin,
+    end: memoryEnd,
+  });
+};
+
 const handleStepButton = async () => {
   console.log('step');
   const x = await postStep();
@@ -609,8 +628,8 @@ const handleStepButton = async () => {
   consoleRef.value?.addLog(x.message, 'info');
   registerData.value = await registers();
   memoryData.value = await memoryRange({
-    begin: 0,
-    end: 0x1c,
+    begin: memoryBegin,
+    end: memoryEnd,
   });
 
   if (breakpoints.has(currentLine)) {
